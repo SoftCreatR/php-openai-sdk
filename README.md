@@ -129,6 +129,10 @@ For more details on how to use each endpoint, refer to the [OpenAI API documenta
 -   [Create moderation](https://platform.openai.com/docs/api-reference/moderations/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/moderations/createModeration.php)
     -   `createModeration(array $options = [])`
 
+## Changelog
+
+For a detailed list of changes and updates, please refer to the [CHANGELOG.md](https://github.com/SoftCreatR/php-openai-sdk/blob/main/CHANGELOG.md) file. We adhere to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and document notable changes for each release.
+
 ## Known Problems and limitations
 
 ### Streaming Support
