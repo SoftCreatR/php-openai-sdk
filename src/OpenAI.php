@@ -18,6 +18,7 @@
 
 namespace SoftCreatR\OpenAI;
 
+use Composer\InstalledVersions;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -31,6 +32,7 @@ use Psr\Http\Message\ResponseInterface;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 
 use const JSON_THROW_ON_ERROR;
+use const PHP_VERSION;
 
 /**
  * Class ScOpenAI
@@ -76,6 +78,11 @@ class OpenAI
     private int $timeout = 60;
 
     /**
+     * @var string|null The proxy settings to be used for API requests
+     */
+    private ?string $proxy = null;
+
+    /**
      * @var string The API key.
      */
     private string $apiKey;
@@ -83,7 +90,7 @@ class OpenAI
     /**
      * @var ?ClientInterface Instance of a configured Guzzle HTTP client, using cURL.
      */
-    private ?ClientInterface $httpClient;
+    private ?ClientInterface $httpClient = null;
 
     /**
      * @var self|null The singleton instance of the OpenAI class.
@@ -209,6 +216,20 @@ class OpenAI
     }
 
     /**
+     * Set the proxy to be used for API requests.
+     *
+     * @param string|null $proxy The proxy URL, e.g. 'http://proxy.example.com:8080'
+     *
+     * @return self Returns the current OpenAI instance for method chaining
+     */
+    public function setProxy(?string $proxy): self
+    {
+        $this->proxy = $proxy;
+
+        return $this;
+    }
+
+    /**
      * Set the HTTP client instance.
      *
      * @param ClientInterface $client The HTTP client instance to use.
@@ -229,8 +250,20 @@ class OpenAI
      */
     public function getHttpClient(): ClientInterface
     {
-        if (!isset($this->httpClient)) {
-            $this->setHttpClient(new Client([RequestOptions::TIMEOUT => $this->timeout]));
+        if (null === $this->httpClient) {
+            $options = [
+                RequestOptions::HTTP_ERRORS => false,
+                RequestOptions::HEADERS => [
+                    'User-Agent' => 'SoftCreatR/PHP-OpenAI (' . $this->getPackageVersion() . ') PHP/' . PHP_VERSION,
+                ],
+                RequestOptions::TIMEOUT => $this->timeout,
+            ];
+
+            if (null !== $this->proxy) {
+                $options[RequestOptions::PROXY] = $this->proxy;
+            }
+
+            $this->httpClient = new Client($options);
         }
 
         return $this->httpClient;
@@ -376,5 +409,15 @@ class OpenAI
         }
 
         throw new OpenAIException($message, $e->getCode(), $e);
+    }
+
+    /**
+     * Get the package version from the composer.json file.
+     *
+     * @return string The package version
+     */
+    private function getPackageVersion(): string
+    {
+        return InstalledVersions::getRootPackage()['version'] ?? 'unknown';
     }
 }
