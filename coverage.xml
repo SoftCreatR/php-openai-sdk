@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1679024170">
+  <project timestamp="1679024170">
+    <file name="C:\Users\sasch\GitHub\php-openai-sdk\src\Exception\OpenAIException.php">
+      <class name="SoftCreatR\OpenAI\Exception\OpenAIException" namespace="global">
+        <metrics complexity="5" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="7" elements="8" coveredelements="8"/>
+      </class>
+      <line num="39" type="method" name="__construct" visibility="public" complexity="5" crap="5" count="2"/>
+      <line num="43" type="stmt" count="2"/>
+      <line num="44" type="stmt" count="2"/>
+      <line num="45" type="stmt" count="1"/>
+      <line num="47" type="stmt" count="1"/>
+      <line num="48" type="stmt" count="1"/>
+      <line num="50" type="stmt" count="1"/>
+      <line num="54" type="stmt" count="2"/>
+      <metrics loc="57" ncloc="31" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="7" coveredstatements="7" elements="8" coveredelements="8"/>
+    </file>
+    <file name="C:\Users\sasch\GitHub\php-openai-sdk\src\OpenAI.php">
+      <class name="SoftCreatR\OpenAI\OpenAI" namespace="global">
+        <metrics complexity="33" methods="16" coveredmethods="16" conditionals="0" coveredconditionals="0" statements="62" coveredstatements="62" elements="78" coveredelements="78"/>
+      </class>
+      <line num="96" type="method" name="__construct" visibility="private" complexity="1" crap="1" count="1"/>
+      <line num="98" type="stmt" count="1"/>
+      <line num="99" type="stmt" count="1"/>
+      <line num="107" type="method" name="getInstance" visibility="public" complexity="2" crap="2" count="8"/>
+      <line num="109" type="stmt" count="8"/>
+      <line num="110" type="stmt" count="1"/>
+      <line num="113" type="stmt" count="8"/>
+      <line num="127" type="method" name="__call" visibility="public" complexity="1" crap="1" count="2"/>
+      <line num="129" type="stmt" count="2"/>
+      <line num="130" type="stmt" count="2"/>
+      <line num="132" type="stmt" count="2"/>
+      <line num="134" type="stmt" count="2"/>
+      <line num="143" type="method" name="extractCallArguments" visibility="private" complexity="6" crap="6" count="3"/>
+      <line num="145" type="stmt" count="3"/>
+      <line num="146" type="stmt" count="3"/>
+      <line num="148" type="stmt" count="3"/>
+      <line num="149" type="stmt" count="1"/>
+      <line num="152" type="stmt" count="3"/>
+      <line num="153" type="stmt" count="2"/>
+      <line num="155" type="stmt" count="2"/>
+      <line num="156" type="stmt" count="2"/>
+      <line num="158" type="stmt" count="2"/>
+      <line num="159" type="stmt" count="2"/>
+      <line num="162" type="stmt" count="3"/>
+      <line num="175" type="method" name="createCompletion" visibility="public" complexity="1" crap="1" count="1"/>
+      <line num="177" type="stmt" count="1"/>
+      <line num="190" type="method" name="createChatCompletion" visibility="public" complexity="1" crap="1" count="1"/>
+      <line num="192" type="stmt" count="1"/>
+      <line num="202" type="method" name="setTimeout" visibility="public" complexity="1" crap="1" count="1"/>
+      <line num="204" type="stmt" count="1"/>
+      <line num="206" type="stmt" count="1"/>
+      <line num="208" type="stmt" count="1"/>
+      <line num="218" type="method" name="setHttpClient" visibility="public" complexity="1" crap="1" count="8"/>
+      <line num="220" type="stmt" count="8"/>
+      <line num="222" type="stmt" count="8"/>
+      <line num="230" type="method" name="getHttpClient" visibility="public" complexity="2" crap="2" count="7"/>
+      <line num="232" type="stmt" count="7"/>
+      <line num="233" type="stmt" count="1"/>
+      <line num="236" type="stmt" count="7"/>
+      <line num="251" type="method" name="processWithOptions" visibility="private" complexity="1" crap="1" count="2"/>
+      <line num="253" type="stmt" count="2"/>
+      <line num="255" type="stmt" count="2"/>
+      <line num="271" type="method" name="callAPI" visibility="private" complexity="1" crap="1" count="4"/>
+      <line num="273" type="stmt" count="4"/>
+      <line num="288" type="method" name="sendRequest" visibility="private" complexity="2" crap="2" count="6"/>
+      <line num="290" type="stmt" count="6"/>
+      <line num="291" type="stmt" count="6"/>
+      <line num="294" type="stmt" count="6"/>
+      <line num="296" type="stmt" count="6"/>
+      <line num="297" type="stmt" count="2"/>
+      <line num="298" type="stmt" count="2"/>
+      <line num="307" type="method" name="buildHeaders" visibility="private" complexity="1" crap="1" count="6"/>
+      <line num="309" type="stmt" count="6"/>
+      <line num="321" type="method" name="buildRequestBody" visibility="private" complexity="4" crap="4" count="6"/>
+      <line num="323" type="stmt" count="6"/>
+      <line num="324" type="stmt" count="1"/>
+      <line num="326" type="stmt" count="1"/>
+      <line num="328" type="stmt" count="5"/>
+      <line num="329" type="stmt" count="5"/>
+      <line num="332" type="stmt" count="6"/>
+      <line num="342" type="method" name="buildMultipart" visibility="private" complexity="5" crap="5" count="1"/>
+      <line num="344" type="stmt" count="1"/>
+      <line num="346" type="stmt" count="1"/>
+      <line num="347" type="stmt" count="1"/>
+      <line num="348" type="stmt" count="1"/>
+      <line num="349" type="stmt" count="1"/>
+      <line num="350" type="stmt" count="1"/>
+      <line num="351" type="stmt" count="1"/>
+      <line num="353" type="stmt" count="1"/>
+      <line num="354" type="stmt" count="1"/>
+      <line num="355" type="stmt" count="1"/>
+      <line num="356" type="stmt" count="1"/>
+      <line num="360" type="stmt" count="1"/>
+      <line num="370" type="method" name="handleSendRequestExceptions" visibility="private" complexity="3" crap="3" count="2"/>
+      <line num="372" type="stmt" count="2"/>
+      <line num="373" type="stmt" count="1"/>
+      <line num="375" type="stmt" count="1"/>
+      <line num="378" type="stmt" count="2"/>
+      <metrics loc="381" ncloc="195" classes="1" methods="16" coveredmethods="16" conditionals="0" coveredconditionals="0" statements="62" coveredstatements="62" elements="78" coveredelements="78"/>
+    </file>
+    <file name="C:\Users\sasch\GitHub\php-openai-sdk\src\OpenAIUrlFactory.php">
+      <class name="SoftCreatR\OpenAI\OpenAIUrlFactory" namespace="global">
+        <metrics complexity="5" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="12" elements="15" coveredelements="15"/>
+      </class>
+      <line num="97" type="method" name="getEndpoint" visibility="public" complexity="2" crap="2" count="9"/>
+      <line num="99" type="stmt" count="9"/>
+      <line num="100" type="stmt" count="2"/>
+      <line num="103" type="stmt" count="7"/>
+      <line num="113" type="method" name="replacePathParameters" visibility="private" complexity="2" crap="2" count="6"/>
+      <line num="115" type="stmt" count="6"/>
+      <line num="116" type="stmt" count="2"/>
+      <line num="119" type="stmt" count="4"/>
+      <line num="130" type="method" name="createUrl" visibility="public" complexity="1" crap="1" count="7"/>
+      <line num="132" type="stmt" count="7"/>
+      <line num="133" type="stmt" count="6"/>
+      <line num="135" type="stmt" count="6"/>
+      <line num="136" type="stmt" count="6"/>
+      <line num="137" type="stmt" count="6"/>
+      <line num="138" type="stmt" count="6"/>
+      <metrics loc="141" ncloc="86" classes="1" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="12" coveredstatements="12" elements="15" coveredelements="15"/>
+    </file>
+    <metrics files="3" loc="579" ncloc="312" classes="3" methods="20" coveredmethods="20" conditionals="0" coveredconditionals="0" statements="81" coveredstatements="81" elements="101" coveredelements="101"/>
+  </project>
+</coverage>

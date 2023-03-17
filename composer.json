@@ -1,0 +1,52 @@
+{
+  "name": "softcreatr/php-openai-sdk",
+  "description": "A powerful and easy-to-use PHP SDK for the OpenAI API, allowing seamless integration of advanced AI-powered features into your PHP projects.",
+  "license": "ISC",
+  "type": "library",
+  "version": "1.0.0",
+  "keywords": [
+    "openai",
+    "gpt",
+    "gpt-3",
+    "gpt-4",
+    "artificial-intelligence",
+    "machine-learning",
+    "natural-language-processing",
+    "nlp",
+    "php",
+    "sdk",
+    "api-wrapper"
+  ],
+  "authors": [
+    {
+      "name": "Sascha Greuel",
+      "email": "hello@1-2.dev"
+    }
+  ],
+  "require": {
+    "php": ">=7.4",
+    "ext-json": "*",
+    "guzzlehttp/guzzle": "^7"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9"
+  },
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "SoftCreatR\\OpenAI\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "SoftCreatr\\OpenAI\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "scripts": {
+    "phpcsf": "php-cs-fixer fix",
+    "test": "phpunit"
+  }
+}
