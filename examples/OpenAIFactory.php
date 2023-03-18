@@ -18,9 +18,9 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use GuzzleHttp\Client as GuzzleClient;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use SoftCreatR\OpenAI\OpenAI;
-use Symfony\Component\HttpClient\Psr18Client;
 
 class OpenAIFactory
 {
@@ -35,9 +35,9 @@ class OpenAIFactory
         ?string $organisation = self::ORGANIZATION_ID
     ): OpenAI {
         $psr17Factory = new Psr17Factory();
-        $psr18Client = new Psr18Client();
+        $guzzleClient = new GuzzleClient();
 
-        return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $psr18Client, $apiKey, $organisation);
+        return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $guzzleClient, $apiKey, $organisation);
     }
 
     public static function request(string $method, $args = []): void

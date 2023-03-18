@@ -309,7 +309,7 @@ class OpenAI
             $multipartStream .= "--{$multipartBoundary}\r\n";
             $multipartStream .= "Content-Disposition: form-data; name=\"{$key}\"";
 
-            if (in_array($key, ['file', 'image', 'mask'], true)) {
+            if (\in_array($key, ['file', 'image', 'mask'], true)) {
                 $filename = \basename($value);
                 $multipartStream .= "; filename=\"{$filename}\"\r\n";
                 $multipartStream .= "Content-Type: application/octet-stream\r\n";
@@ -333,7 +333,6 @@ class OpenAI
      */
     private function isMultipartRequest(array $params): bool
     {
-        return array_intersect_key(array_flip(['file', 'image', 'mask']), $params) !== [];
+        return \array_intersect_key(\array_flip(['file', 'image', 'mask']), $params) !== [];
     }
-
 }
