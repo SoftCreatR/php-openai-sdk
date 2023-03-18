@@ -16,44 +16,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../OpenAIFactory.php';
 
-use SoftCreatR\OpenAI\OpenAI;
-
-// Replace 'your-api-key' with your actual OpenAI API key
-$apiKey = 'your-api-key';
-
-// Instantiate the OpenAI class
-$openAI = OpenAI::getInstance($apiKey);
-
-// Set the completion options
-$options = [
+// Call the createCompletion method with options.
+OpenAIFactory::request('createCompletion', [
     'model' => 'text-davinci-003',
     'prompt' => 'Say this is a test',
     'max_tokens' => 7,
     'temperature' => 0,
     'top_p' => 1,
     'n' => 1,
-];
-
-// Call the createCompletion method
-try {
-    $response = $openAI->createCompletion($options);
-
-    // Check if the response has a 200 status code (success)
-    if ($response->getStatusCode() === 200) {
-        // Decode the response body
-        $completion = \json_decode($response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
-
-        // Print the completion information as a JSON string
-        echo "============\n| Response |\n============\n\n";
-        echo \json_encode($completion, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
-        echo "\n\n============\n";
-    } else {
-        // In case of a non-200 status code, print the response body
-        echo "Error: {$response->getBody()}\n";
-    }
-} catch (Exception $e) {
-    // Handle any exceptions during the API call
-    echo "Error: {$e->getMessage()}\n";
-}
+]);

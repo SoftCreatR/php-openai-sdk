@@ -16,40 +16,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../OpenAIFactory.php';
 
-use SoftCreatR\OpenAI\OpenAI;
-
-// Replace 'your-api-key' with your actual OpenAI API key
-$apiKey = 'your-api-key';
-
-// Instantiate the OpenAI class
-$openAI = OpenAI::getInstance($apiKey);
-
-// Set the embedding options
-$options = [
+// Call the createEmbedding method with options.
+OpenAIFactory::request('createEmbedding', [
     'model' => 'text-embedding-ada-002',
     'input' => 'The food was delicious and the waiter...',
-];
-
-// Call the createEmbedding method
-try {
-    $response = $openAI->createEmbedding($options);
-
-    // Check if the response has a 200 status code (success)
-    if ($response->getStatusCode() === 200) {
-        // Decode the response body
-        $embedding = \json_decode($response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
-
-        // Print the embedding information as a JSON string
-        echo "============\n| Response |\n============\n\n";
-        echo \json_encode($embedding, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
-        echo "\n\n============\n";
-    } else {
-        // In case of a non-200 status code, print the response body
-        echo "Error: {$response->getBody()}\n";
-    }
-} catch (Exception $e) {
-    // Handle any exceptions during the API call
-    echo "Error: {$e->getMessage()}\n";
-}
+]);

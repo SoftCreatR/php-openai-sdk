@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2023-03-18
+
+### Added
+
+- Added support for any PSR-17 and PSR-18 compatible HTTP client and factory.
+- Refactored all examples to use the updated `OpenAI` class.
+
+### Changed
+
+- Removed Guzzle dependency from the project.
+- Removed the singleton pattern from the `OpenAI` class.
+- Major refactoring of the `OpenAI` class to support any PSR-17 and PSR-18 compatible HTTP client and factory.
+- Refactored and optimized the test cases in `OpenAITest`.
+- Optimized the `OpenAIException` class.
+- Updated the README.md to reflect changes in the project structure and requirements.
+
 ## [1.1.0] - 2023-03-17
 
 ### Added

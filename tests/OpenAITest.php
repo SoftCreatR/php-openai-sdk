@@ -1,50 +1,29 @@
 <?php
 
-/*
- * Copyright (c) 2023, Sascha Greuel and Contributors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
-
 namespace SoftCreatR\OpenAI\Tests;
 
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\RequestOptions;
+use JsonException;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use ReflectionException;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 use SoftCreatR\OpenAI\OpenAI;
+use Throwable;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
+ * @covers \SoftCreatR\OpenAI\Exception\OpenAIException
  * @covers \SoftCreatR\OpenAI\OpenAI
+ * @covers \SoftCreatR\OpenAI\OpenAIURLBuilder
  */
 class OpenAITest extends TestCase
 {
-    /**
-     * The OpenAI instance used for testing.
-     *
-     * @var OpenAI
-     */
-    private OpenAI $openAI;
-
     /**
      * The mocked HTTP client used for simulating API responses.
      *
@@ -64,18 +43,20 @@ class OpenAITest extends TestCase
     {
         parent::setUp();
 
-        $this->openAI = OpenAI::getInstance('your_api_key', 'your_organisation_id');
-        $this->mockedClient = $this->createMock(Client::class);
-        $this->openAI->setHttpClient($this->mockedClient);
+        $psr17Factory = new Psr17Factory();
+        $this->mockedClient = $this->createMock(ClientInterface::class);
+
+        $this->openAI = new OpenAI(
+            $psr17Factory,
+            $psr17Factory,
+            $psr17Factory,
+            $this->mockedClient,
+            ''
+        );
     }
 
     /**
      * Test that OpenAI::__call method can handle API calls correctly.
-     *
-     * @covers \SoftCreatR\OpenAI\OpenAI::__call
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::createUrl
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::getEndpoint
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::replacePathParameters
      */
     public function testCall(): void
     {
@@ -87,12 +68,6 @@ class OpenAITest extends TestCase
 
     /**
      * Test that OpenAI::completion method can handle API calls correctly.
-     *
-     * @covers \SoftCreatR\OpenAI\OpenAI::createCompletion
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::createUrl
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::getEndpoint
-     * @covers \SoftCreatR\OpenAI\OpenAI::createCompletion
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::replacePathParameters
      */
     public function testCreateCompletion(): void
     {
@@ -114,11 +89,6 @@ class OpenAITest extends TestCase
 
     /**
      * Test that OpenAI::chat method can handle API calls correctly.
-     *
-     * @covers \SoftCreatR\OpenAI\OpenAI::createChatCompletion
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::createUrl
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::getEndpoint
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::replacePathParameters
      */
     public function testCreateChatCompletion(): void
     {
@@ -136,11 +106,6 @@ class OpenAITest extends TestCase
      *
      * This test ensures that the 'Content-Type' header is set to 'multipart/form-data' and
      * that the given options (file and purpose) are included in the request body.
-     *
-     * @covers \SoftCreatR\OpenAI\OpenAI::__call
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::createUrl
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::getEndpoint
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::replacePathParameters
      */
     public function testUploadFile(): void
     {
@@ -150,7 +115,7 @@ class OpenAITest extends TestCase
 
         $this->mockedClient
             ->expects(self::once())
-            ->method('send')
+            ->method('sendRequest')
             ->willReturnCallback(
                 static function (RequestInterface $request) use ($fixture, $fakeResponseBody) {
                     $fakeResponse = new Response(200, [], $fakeResponseBody);
@@ -178,89 +143,6 @@ class OpenAITest extends TestCase
 
         self::assertEquals(200, $response->getStatusCode());
         self::assertEquals($fakeResponseBody, (string)$response->getBody());
-    }
-
-    /**
-     * Test that getHttpClient returns a GuzzleHttp\ClientInterface object
-     * and that the timeout and proxy settings are updated correctly.
-     *
-     * @throws ReflectionException
-     */
-    public function testGetHttpClient(): void
-    {
-        $httpClient = $this->openAI->getHttpClient();
-
-        $proxy = 'https://proxy.example.com:8080';
-        $newTimeout = 10;
-
-        $this->openAI->setTimeout($newTimeout)->setProxy($proxy);
-
-        // Check if the timeout has been updated correctly.
-        $timeout = TestHelper::getPrivateProperty($this->openAI, 'timeout');
-        self::assertEquals($newTimeout, $timeout);
-
-        // Invalidate the existing httpClient to force a new one with the updated settings.
-        TestHelper::setPrivateProperty($this->openAI, 'httpClient', null);
-        $httpClient2 = $this->openAI->getHttpClient();
-
-        // Assert that a new httpClient has been created with the updated settings.
-        self::assertNotSame($httpClient, $httpClient2);
-
-        /** @noinspection PhpDeprecationInspection */
-        $config = $httpClient2->getConfig();
-
-        self::assertEquals($newTimeout, $config[RequestOptions::TIMEOUT]);
-        self::assertEquals($proxy, $config[RequestOptions::PROXY]);
-    }
-
-    /**
-     * Test that ClientExceptionInterface gets caught and an OpenAIException is thrown in sendRequest.
-     *
-     * @covers \SoftCreatR\OpenAI\Exception\OpenAIException::__construct
-     *
-     * @throws ReflectionException
-     */
-    public function testClientExceptionHandlingWithStringResponse(): void
-    {
-        $this->prepareClientWithMockHandler([
-            new Exception('Test Client Exception'),
-        ]);
-
-        // Use Reflection to access the private sendRequest method
-        $sendRequest = TestHelper::getPrivateMethod($this->openAI, 'sendRequest');
-
-        // Test that an OpenAIException is thrown when calling sendRequest
-        $this->expectException(OpenAIException::class);
-        $this->expectExceptionMessage('Test Client Exception');
-        $this->expectExceptionCode(0);
-        $sendRequest->invokeArgs($this->openAI, ['GET', '/test-path']);
-    }
-
-    /**
-     * Test that ClientExceptionInterface gets caught and an OpenAIException is thrown in sendRequest.
-     *
-     * @covers \SoftCreatR\OpenAI\Exception\OpenAIException::__construct
-     *
-     * @throws ReflectionException
-     */
-    public function testClientExceptionHandlingWithJsonResponse(): void
-    {
-        $this->prepareClientWithMockHandler([
-            new RequestException(
-                '',
-                new Request('GET', '/'),
-                new Response(400, [], '{"error": {"message": "Test Client Exception"}}')
-            ),
-        ]);
-
-        // Use Reflection to access the private sendRequest method
-        $sendRequest = TestHelper::getPrivateMethod($this->openAI, 'sendRequest');
-
-        // Test that an OpenAIException is thrown when calling sendRequest
-        $this->expectException(OpenAIException::class);
-        $this->expectExceptionMessage('Test Client Exception');
-        $this->expectExceptionCode(400);
-        $sendRequest->invokeArgs($this->openAI, ['GET', '/test-path']);
     }
 
     /**
@@ -295,17 +177,89 @@ class OpenAITest extends TestCase
     }
 
     /**
-     * Prepare the OpenAI instance with a new HTTP client that uses a MockHandler with the specified responses.
+     * Test that OpenAI::callAPI handles JSON encoding errors correctly.
      *
-     * @param array $responses An array of responses to be used by the MockHandler.
+     * This test ensures that when the JSON encoding fails due to an invalid value,
+     * the method catches the JsonException and sets the request body to an empty string.
      */
-    private function prepareClientWithMockHandler(array $responses): void
+    public function testCallAPIJsonEncodingException(): void
     {
-        // Create the HandlerStack with the MockHandler
-        $handlerStack = HandlerStack::create(new MockHandler($responses));
+        $this->sendRequestMock(static function (RequestInterface $request) {
+            $fakeResponse = new Response(200, [], '');
+            // Check if the request body is empty
+            self::assertEquals('', (string)$request->getBody());
 
-        // Replace the httpClient with a new one using the HandlerStack
-        $this->openAI->setHttpClient(new Client(['handler' => $handlerStack]));
+            return $fakeResponse;
+        });
+
+        $invalidValue = \tmpfile(); // create an invalid value that cannot be JSON encoded
+        $response = null;
+
+        try {
+            $response = $this->openAI->createCompletion([
+                'model' => 'text-davinci-002',
+                'prompt' => 'Say this is a test',
+                'max_tokens' => 7,
+                'invalid' => $invalidValue, // pass the invalid value
+            ]);
+        } catch (Exception $e) {
+            // ignore
+        }
+
+        self::assertEquals(200, $response->getStatusCode());
+        self::assertEquals('', (string)$response->getBody());
+    }
+
+    /**
+     * Test that OpenAI::sendRequest method throws an OpenAIException when a ClientExceptionInterface occurs.
+     *
+     * @throws Exception
+     */
+    public function testSendRequestException(): void
+    {
+        $this->sendRequestMock(function () {
+            throw $this->createMock(ClientExceptionInterface::class);
+        });
+
+        $this->expectException(OpenAIException::class);
+
+        try {
+            $this->openAI->retrieveModel('text-davinci-003');
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Test that OpenAI::callAPI handles non-200 status codes correctly.
+     *
+     * @throws JsonException
+     */
+    public function testCallApiErrorHandling(): void
+    {
+        $fakeErrorResponseBody = \json_encode([
+            'error' => [
+                'message' => 'An error occurred.',
+            ],
+        ], JSON_THROW_ON_ERROR);
+
+        // Configure the mocked client to throw an exception with a non-200 status code
+        $this->sendRequestMock(
+            function () use ($fakeErrorResponseBody) {
+                throw new class ($fakeErrorResponseBody) extends Exception implements ClientExceptionInterface {
+                    public function __construct($message, $code = 400, ?Throwable $previous = null)
+                    {
+                        parent::__construct($message, $code, $previous);
+                    }
+                };
+            }
+        );
+
+        $this->expectException(OpenAIException::class);
+        $this->expectExceptionMessage('An error occurred.');
+        $this->expectExceptionCode(400);
+
+        $this->openAI->__call('listModels', []);
     }
 
     /**
@@ -321,10 +275,10 @@ class OpenAITest extends TestCase
         $response = null;
         $fakeResponseBody = TestHelper::loadResponseFromFile($responseFile);
         $fakeResponse = new Response(200, [], $fakeResponseBody);
-        $this->mockedClient
-            ->expects(self::once())
-            ->method('send')
-            ->willReturn($fakeResponse);
+
+        $this->sendRequestMock(static function () use ($fakeResponse) {
+            return $fakeResponse;
+        });
 
         try {
             $response = $apiCall();
@@ -334,5 +288,22 @@ class OpenAITest extends TestCase
 
         self::assertEquals(200, $response->getStatusCode());
         self::assertEquals($fakeResponseBody, (string)$response->getBody());
+    }
+
+    /**
+     * Sets up a mock for the sendRequest method of the mocked client.
+     *
+     * This helper method is used to reduce code duplication when configuring
+     * the sendRequest mock in multiple test cases. It accepts a callable, which
+     * will be used as the return value or exception thrown by the sendRequest mock.
+     *
+     * @param callable $responseCallback A callable that returns a response or throws an exception
+     */
+    private function sendRequestMock(callable $responseCallback): void
+    {
+        $this->mockedClient
+            ->expects(self::once())
+            ->method('sendRequest')
+            ->willReturnCallback($responseCallback);
     }
 }

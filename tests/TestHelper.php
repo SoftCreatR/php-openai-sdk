@@ -25,42 +25,6 @@ use ReflectionMethod;
 class TestHelper
 {
     /**
-     * Get a private property of an object using Reflection.
-     *
-     * @param object $instance The instance of the object.
-     * @param string $propertyName The name of the private property.
-     *
-     * @return mixed The value of the private property.
-     *
-     * @throws ReflectionException If the property does not exist.
-     */
-    public static function getPrivateProperty(object $instance, string $propertyName)
-    {
-        $reflection = new ReflectionClass($instance);
-        $property = $reflection->getProperty($propertyName);
-        $property->setAccessible(true);
-
-        return $property->getValue($instance);
-    }
-
-    /**
-     * Set the value of a private property of an object using Reflection.
-     *
-     * @param object $instance The instance of the object.
-     * @param string $propertyName The name of the private property.
-     * @param mixed $value The value to set.
-     *
-     * @throws ReflectionException If the property does not exist.
-     */
-    public static function setPrivateProperty(object $instance, string $propertyName, $value): void
-    {
-        $reflection = new ReflectionClass($instance);
-        $property = $reflection->getProperty($propertyName);
-        $property->setAccessible(true);
-        $property->setValue($instance, $value);
-    }
-
-    /**
      * Get a private method of an object using Reflection.
      *
      * @param object $instance The instance of the object.

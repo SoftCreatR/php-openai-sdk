@@ -2,3 +2,4 @@
 vendor/
 /*.cache
 .idea/
+/coverage.xml

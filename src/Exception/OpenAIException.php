@@ -21,7 +21,6 @@ namespace SoftCreatR\OpenAI\Exception;
 use Exception;
 use Throwable;
 
-use const JSON_ERROR_NONE;
 use const JSON_THROW_ON_ERROR;
 
 /**
@@ -36,19 +35,21 @@ class OpenAIException extends Exception
      * @param int $code The exception code.
      * @param Throwable|null $previous The previous exception used for the exception chaining.
      */
-    public function __construct($message = "", $code = 0, ?Throwable $previous = null)
-    {
-        try {
-            if (
-                \is_string($message)
-                && \is_array(\json_decode($message, true, 512, JSON_THROW_ON_ERROR))
-                && (\json_last_error() === JSON_ERROR_NONE)
-            ) {
+    public function __construct(
+        string $message = "An unknown error occurred",
+        int $code = 0,
+        ?Throwable $previous = null
+    ) {
+        if (\is_string($message)) {
+            try {
                 $decoded = \json_decode($message, true, 512, JSON_THROW_ON_ERROR);
-                $message = $decoded['error']['message'] ?? $decoded;
+
+                if (\is_array($decoded) && isset($decoded['error']['message'])) {
+                    $message = $decoded['error']['message'];
+                }
+            } catch (Exception $e) {
+                // ignore
             }
-        } catch (Exception $e) {
-            // ignore
         }
 
         parent::__construct($message, $code, $previous);

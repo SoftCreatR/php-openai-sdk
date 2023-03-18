@@ -18,16 +18,14 @@
 
 namespace SoftCreatR\OpenAI;
 
-use GuzzleHttp\Psr7\Uri;
 use InvalidArgumentException;
+use Nyholm\Psr7\Uri;
 use Psr\Http\Message\UriInterface;
 
 /**
- * Class OpenAIUrlFactory
- *
  * Creates URLs for OpenAI API endpoints.
  */
-final class OpenAIUrlFactory
+final class OpenAIURLBuilder
 {
     public const ORIGIN = 'api.openai.com';
 
