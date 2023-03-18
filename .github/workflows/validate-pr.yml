@@ -48,7 +48,7 @@ jobs:
         run: php-cs-fixer fix --dry-run --diff
 
       - name: Run PHPStan
-        run: phpstan analyse src tests
+        run: phpstan analyse src tests --xdebug
 
   check-dependencies:
     needs: analyze-code

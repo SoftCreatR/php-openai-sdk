@@ -40,18 +40,29 @@ class OpenAIException extends Exception
         int $code = 0,
         ?Throwable $previous = null
     ) {
-        if (\is_string($message)) {
-            try {
-                $decoded = \json_decode($message, true, 512, JSON_THROW_ON_ERROR);
+        parent::__construct($this->extractErrorMessageFromJson($message), $code, $previous);
+    }
 
-                if (\is_array($decoded) && isset($decoded['error']['message'])) {
-                    $message = $decoded['error']['message'];
-                }
-            } catch (Exception $e) {
-                // ignore
+    /**
+     * Extracts the error message from a JSON-encoded string, if available.
+     *
+     * @param string $errorMessage The error message, encoded as a JSON string.
+     *
+     * @return string The extracted error message, or the original error message if JSON decoding failed,
+     *                or the error message does not contain the expected structure.
+     */
+    private function extractErrorMessageFromJson(string $errorMessage): string
+    {
+        try {
+            $decoded = \json_decode($errorMessage, true, 512, JSON_THROW_ON_ERROR);
+
+            if (\is_array($decoded) && isset($decoded['error']['message'])) {
+                return $decoded['error']['message'];
             }
+        } catch (Exception $e) {
+            // ignore
         }
 
-        parent::__construct($message, $code, $previous);
+        return $errorMessage;
     }
 }

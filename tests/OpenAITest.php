@@ -25,6 +25,13 @@ use const JSON_THROW_ON_ERROR;
 class OpenAITest extends TestCase
 {
     /**
+     * The OpenAI instance used for testing.
+     *
+     * @var OpenAI
+     */
+    private OpenAI $openAI;
+
+    /**
      * The mocked HTTP client used for simulating API responses.
      *
      * @var ClientInterface

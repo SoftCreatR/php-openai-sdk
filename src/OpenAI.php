@@ -22,6 +22,7 @@ use JsonException;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
@@ -251,32 +252,17 @@ class OpenAI
         $uri = $this->uriFactory->createUri($url);
         $request = $this->requestFactory->createRequest($method, $uri);
 
-        $headers = [
-            'Authorization' => 'Bearer ' . $this->apiKey,
-            'OpenAI-Organization' => $this->organisation ?: '',
-        ];
+        $isMultipart = $this->isMultipartRequest($params);
+        $boundary = $isMultipart ? $this->generateMultipartBoundary() : '';
+        $headers = $this->createHeaders($isMultipart, $boundary);
+        $request = $this->applyHeaders($request, $headers);
 
-        if ($this->isMultipartRequest($params)) {
-            $multipartBoundary = '----OpenAI' . \hash('sha256', \uniqid('', true));
-            $headers['Content-Type'] = "multipart/form-data; boundary={$multipartBoundary}";
-            $body = $this->createMultipartStream($params, $multipartBoundary);
-        } else {
-            $headers['Content-Type'] = 'application/json';
-
-            try {
-                $body = !empty($params) ? \json_encode($params, JSON_THROW_ON_ERROR) : '';
-            } catch (JsonException $e) {
-                // Fallback to an empty string if encoding fails
-                $body = '';
-            }
-        }
+        $body = $isMultipart
+            ? $this->createMultipartStream($params, $boundary)
+            : $this->createJsonBody($params);
 
         if (!empty($body)) {
             $request = $request->withBody($this->streamFactory->createStream($body));
-        }
-
-        foreach ($headers as $key => $value) {
-            $request = $request->withHeader($key, $value);
         }
 
         try {
@@ -291,6 +277,69 @@ class OpenAI
         }
 
         return $response;
+    }
+
+    /**
+     * Generates a unique multipart boundary string.
+     *
+     * @return string The generated multipart boundary string.
+     */
+    private function generateMultipartBoundary(): string
+    {
+        return '----OpenAI' . \hash('sha256', \uniqid('', true));
+    }
+
+    /**
+     * Creates the headers for an API request.
+     *
+     * @param bool $isMultipart Indicates whether the request is multipart or not.
+     * @param string|null $boundary The multipart boundary string, if applicable.
+     *
+     * @return array An associative array of headers.
+     */
+    private function createHeaders(bool $isMultipart, ?string $boundary): array
+    {
+        return [
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'OpenAI-Organization' => $this->organisation ?: '',
+            'Content-Type' => $isMultipart
+                ? "multipart/form-data; boundary={$boundary}"
+                : 'application/json',
+        ];
+    }
+
+    /**
+     * Applies the headers to the given request.
+     *
+     * @param RequestInterface $request The request to apply headers to.
+     * @param array $headers An associative array of headers to apply.
+     *
+     * @return RequestInterface The request with headers applied.
+     */
+    private function applyHeaders(RequestInterface $request, array $headers): RequestInterface
+    {
+        foreach ($headers as $key => $value) {
+            $request = $request->withHeader($key, $value);
+        }
+
+        return $request;
+    }
+
+    /**
+     * Creates a JSON encoded body string from the given parameters.
+     *
+     * @param array $params An associative array of parameters to encode as JSON.
+     *
+     * @return string The JSON encoded body string, or an empty string if encoding fails.
+     */
+    private function createJsonBody(array $params): string
+    {
+        try {
+            return !empty($params) ? \json_encode($params, JSON_THROW_ON_ERROR) : '';
+        } catch (JsonException $e) {
+            // Fallback to an empty string if encoding fails
+            return '';
+        }
     }
 
     /**
