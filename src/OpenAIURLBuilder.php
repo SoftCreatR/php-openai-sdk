@@ -89,7 +89,9 @@ final class OpenAIURLBuilder
      * Gets the OpenAI API endpoint configuration.
      *
      * @param string $key The endpoint key.
+     *
      * @return array<string, string> The endpoint configuration.
+     *
      * @throws InvalidArgumentException If the provided key is invalid.
      */
     public static function getEndpoint(string $key): array
@@ -102,10 +104,33 @@ final class OpenAIURLBuilder
     }
 
     /**
+     * Creates a URL for the specified OpenAI API endpoint.
+     *
+     * @param string $key The key representing the API endpoint.
+     * @param string|null $parameter Optional parameter to replace in the endpoint path.
+     * @param string $origin Custom origin (Hostname), if needed.
+     *
+     * @return UriInterface The fully constructed URL for the API endpoint.
+     *
+     * @throws InvalidArgumentException If the provided key is invalid.
+     */
+    public static function createUrl(string $key, ?string $parameter = null, string $origin = ''): UriInterface
+    {
+        $endpoint = self::getEndpoint($key);
+        $path = self::replacePathParameters($endpoint['path'], $parameter);
+
+        return (new Uri())
+            ->withScheme('https')
+            ->withHost($origin ?: self::ORIGIN)
+            ->withPath(self::API_VERSION . $path);
+    }
+
+    /**
      * Replaces path parameters in the given path with provided parameter value.
      *
      * @param string $path The path containing the parameter placeholder.
      * @param string|null $parameter The parameter value to replace the placeholder with.
+     *
      * @return string The path with replaced parameter value.
      */
     private static function replacePathParameters(string $path, ?string $parameter = null): string
@@ -115,24 +140,5 @@ final class OpenAIURLBuilder
         }
 
         return $path;
-    }
-
-    /**
-     * Creates a URL for the specified OpenAI API endpoint.
-     *
-     * @param string $key The key representing the API endpoint.
-     * @param string|null $parameter Optional parameter to replace in the endpoint path.
-     * @return UriInterface The fully constructed URL for the API endpoint.
-     * @throws InvalidArgumentException If the provided key is invalid.
-     */
-    public static function createUrl(string $key, ?string $parameter = null): UriInterface
-    {
-        $endpoint = self::getEndpoint($key);
-        $path = self::replacePathParameters($endpoint['path'], $parameter);
-
-        return (new Uri())
-            ->withScheme('https')
-            ->withHost(self::ORIGIN)
-            ->withPath(self::API_VERSION . $path);
     }
 }

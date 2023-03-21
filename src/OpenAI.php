@@ -33,7 +33,13 @@ use const JSON_THROW_ON_ERROR;
 /**
  * A wrapper for the OpenAI API.
  *
+ * @property string $apiKey
+ * @property string $organisation
+ * @property string $origin
+ *
  * @method ResponseInterface cancelFineTune(string $id)
+ * @method ResponseInterface createChatCompletion(array $options = [])
+ * @method ResponseInterface createCompletion(array $options = [])
  * @method ResponseInterface createEdit(array $options = [])
  * @method ResponseInterface createEmbedding(array $options = [])
  * @method ResponseInterface createFile(array $options = [])
@@ -57,16 +63,6 @@ use const JSON_THROW_ON_ERROR;
  */
 class OpenAI
 {
-    /**
-     * The default model to be used when none is specified.
-     */
-    private const DEFAULT_MODEL = 'text-davinci-002';
-
-    /**
-     * The default chat model to be used when none is specified.
-     */
-    private const DEFAULT_CHAT_MODEL = 'gpt-3.5-turbo';
-
     /**
      * The HTTP client instance used for sending requests.
      *
@@ -95,27 +91,14 @@ class OpenAI
      */
     private UriFactoryInterface $uriFactory;
 
-    /**
-     * The API key used for authentication.
-     *
-     * @var string
-     */
-    private string $apiKey;
-
-    /**
-     * The name of the organization associated with the API key.
-     *
-     * @var string|null
-     */
-    private ?string $organisation;
-
     public function __construct(
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface $streamFactory,
         UriFactoryInterface $uriFactory,
         ClientInterface $httpClient,
         string $apiKey,
-        ?string $organisation = null
+        string $organisation = '',
+        string $origin = ''
     ) {
         $this->requestFactory = $requestFactory;
         $this->streamFactory = $streamFactory;
@@ -123,6 +106,7 @@ class OpenAI
         $this->httpClient = $httpClient;
         $this->apiKey = $apiKey;
         $this->organisation = $organisation;
+        $this->origin = $origin;
     }
 
     /**
@@ -149,6 +133,7 @@ class OpenAI
      * Extracts the arguments from the input array.
      *
      * @param array $args The input arguments.
+     *
      * @return array An array containing the extracted parameter and options.
      */
     private function extractCallArguments(array $args): array
@@ -174,52 +159,6 @@ class OpenAI
     }
 
     /**
-     * Sends a completion request to the OpenAI API.
-     *
-     * @param array $opts The options for the completion request.
-     *
-     * @return ResponseInterface The API response.
-     *
-     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
-     */
-    public function createCompletion(array $opts): ResponseInterface
-    {
-        return $this->processWithOptions('createCompletion', self::DEFAULT_MODEL, $opts);
-    }
-
-    /**
-     * Sends a chat completion request to the OpenAI API.
-     *
-     * @param array $opts The options for the chat completion request.
-     *
-     * @return ResponseInterface The API response.
-     *
-     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
-     */
-    public function createChatCompletion(array $opts): ResponseInterface
-    {
-        return $this->processWithOptions('createChatCompletion', self::DEFAULT_CHAT_MODEL, $opts);
-    }
-
-    /**
-     * Processes a request to the OpenAI API with the provided options.
-     *
-     * @param string $endpoint The API endpoint.
-     * @param string $defaultModel The default model to use if not provided in the options.
-     * @param array $opts The options for the request.
-     *
-     * @return ResponseInterface The API response.
-     *
-     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
-     */
-    private function processWithOptions(string $endpoint, string $defaultModel, array $opts): ResponseInterface
-    {
-        $opts['model'] = $opts['model'] ?? $defaultModel;
-
-        return $this->callAPI('POST', $endpoint, null, $opts);
-    }
-
-    /**
      * Calls the OpenAI API with the provided method, key, parameter, and options.
      *
      * @param string $method The HTTP method for the request.
@@ -233,7 +172,7 @@ class OpenAI
      */
     private function callAPI(string $method, string $key, ?string $parameter = null, array $opts = []): ResponseInterface
     {
-        return $this->sendRequest(OpenAIURLBuilder::createUrl($key, $parameter), $method, $opts);
+        return $this->sendRequest(OpenAIURLBuilder::createUrl($key, $parameter, $this->origin), $method, $opts);
     }
 
     /**

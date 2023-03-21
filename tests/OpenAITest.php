@@ -1,5 +1,21 @@
 <?php
 
+/*
+ * Copyright (c) 2023, Sascha Greuel and Contributors
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
 namespace SoftCreatR\OpenAI\Tests;
 
 use Exception;
@@ -39,6 +55,27 @@ class OpenAITest extends TestCase
     private ClientInterface $mockedClient;
 
     /**
+     * API key for the OpenAI API.
+     *
+     * @var string
+     */
+    private string $apiKey = 'sk-...';
+
+    /**
+     * Organization identifier for the OpenAI API.
+     *
+     * @var string
+     */
+    private string $organisation = 'org-...';
+
+    /**
+     * Custom origin for the OpenAI API, if needed.
+     *
+     * @var string
+     */
+    private string $origin = 'example.com';
+
+    /**
      * Sets up the test environment by creating an OpenAI instance and
      * a mocked HTTP client, then assigning the mocked client to the OpenAI instance.
      *
@@ -58,7 +95,9 @@ class OpenAITest extends TestCase
             $psr17Factory,
             $psr17Factory,
             $this->mockedClient,
-            ''
+            $this->apiKey,
+            $this->organisation,
+            $this->origin
         );
     }
 
@@ -293,6 +332,9 @@ class OpenAITest extends TestCase
             // ignore
         }
 
+        self::assertEquals($this->apiKey, $this->openAI->apiKey);
+        self::assertEquals($this->organisation, $this->openAI->organisation);
+        self::assertEquals($this->origin, $this->openAI->origin);
         self::assertEquals(200, $response->getStatusCode());
         self::assertEquals($fakeResponseBody, (string)$response->getBody());
     }
