@@ -47,8 +47,9 @@ $organisation = 'your_organisation_id'; // optional
 $httpClient = new YourChosenHttpClient();
 $requestFactory = new YourChosenRequestFactory();
 $streamFactory = new YourChosenStreamFactory();
+$uriFactory = new YourChosenUriFactory();
 
-$openAI = new OpenAI($httpClient, $requestFactory, $streamFactory, $apiKey, $organisation);
+$openAI = new OpenAI($requestFactory, $streamFactory, $uriFactory, $httpClient, $apiKey, $organisation);
 ```
 
 Now you can call any supported OpenAI API endpoint using the magic method `__call`:
@@ -58,7 +59,8 @@ $response = $openAI->listModels();
 
 // Process the API response
 if ($response->getStatusCode() === 200) {
-    $models = json_decode((string) $response->getBody(), true);
+    $models = json_decode($response->getBody()->getContents(), true);
+    
     print_r($models);
 } else {
     echo "Error: " . $response->getStatusCode();
@@ -170,4 +172,3 @@ This library is licensed under the ISC License. See the [LICENSE](https://github
 <tr>
 </tr>
 </table>
-
