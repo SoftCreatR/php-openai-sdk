@@ -18,67 +18,53 @@
 
 namespace SoftCreatR\OpenAI\Tests;
 
+use GuzzleHttp\Psr7\HttpFactory;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use SoftCreatR\OpenAI\OpenAIUrlFactory;
+use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
 /**
- * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory
+ * @covers \SoftCreatR\OpenAI\OpenAIURLBuilder
  */
-class OpenAIUrlFactoryTest extends TestCase
+class OpenAIURLBuilderTest extends TestCase
 {
-    /**
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::getEndpoint
-     */
     public function testGetEndpoint(): void
     {
-        $endpoint = OpenAIUrlFactory::getEndpoint('listModels');
+        $endpoint = OpenAIURLBuilder::getEndpoint('listModels');
 
         $this->assertArrayHasKey('method', $endpoint);
         $this->assertArrayHasKey('path', $endpoint);
     }
 
-    /**
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::getEndpoint
-     */
     public function testGetEndpointInvalidKey(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        OpenAIUrlFactory::getEndpoint('invalidKey');
+        OpenAIURLBuilder::getEndpoint('invalidKey');
     }
 
-    /**
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::createUrl
-     */
     public function testCreateUrl(): void
     {
-        $url = OpenAIUrlFactory::createUrl('listModels');
+        $url = OpenAIURLBuilder::createUrl(new HttpFactory(), 'listModels');
 
         $this->assertEquals('https', $url->getScheme());
-        $this->assertEquals(OpenAIUrlFactory::ORIGIN, $url->getHost());
-        $this->assertEquals(OpenAIUrlFactory::API_VERSION . '/models', $url->getPath());
+        $this->assertEquals(OpenAIURLBuilder::ORIGIN, $url->getHost());
+        $this->assertEquals(OpenAIURLBuilder::API_VERSION . '/models', $url->getPath());
     }
 
-    /**
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::createUrl
-     */
     public function testCreateUrlWithPathParameter(): void
     {
-        $url = OpenAIUrlFactory::createUrl('retrieveFile', 'fileId');
+        $url = OpenAIURLBuilder::createUrl(new HttpFactory(), 'retrieveFile', 'fileId');
 
         $this->assertEquals('https', $url->getScheme());
-        $this->assertEquals(OpenAIUrlFactory::ORIGIN, $url->getHost());
-        $this->assertEquals(OpenAIUrlFactory::API_VERSION . '/files/fileId', $url->getPath());
+        $this->assertEquals(OpenAIURLBuilder::ORIGIN, $url->getHost());
+        $this->assertEquals(OpenAIURLBuilder::API_VERSION . '/files/fileId', $url->getPath());
     }
 
-    /**
-     * @covers \SoftCreatR\OpenAI\OpenAIUrlFactory::createUrl
-     */
     public function testCreateUrlInvalidKey(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        OpenAIUrlFactory::createUrl('invalidKey');
+        OpenAIURLBuilder::createUrl(new HttpFactory(), 'invalidKey');
     }
 }

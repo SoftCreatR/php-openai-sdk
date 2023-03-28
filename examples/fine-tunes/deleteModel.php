@@ -16,32 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../OpenAIFactory.php';
 
-use SoftCreatR\OpenAI\OpenAI;
-
-// Replace 'your-api-key' with your actual OpenAI API key
-$apiKey = 'your-api-key';
-
-// Instantiate the OpenAI class
-$openAI = OpenAI::getInstance($apiKey);
-
-// Set the model ID you want to delete
-$modelId = 'curie:ft-acmeco-2021-03-03-21-44-20';
-
-// Call the deleteModel method
-try {
-    $response = $openAI->deleteModel($modelId);
-
-    // Check if the response has a 204 status code (success)
-    if ($response->getStatusCode() === 200) {
-        // Print a success message
-        echo "Model (ID: {$modelId}) deleted successfully.\n";
-    } else {
-        // In case of a non-204 status code, print the response body
-        echo "Error: {$response->getBody()}\n";
-    }
-} catch (Exception $e) {
-    // Handle any exceptions during the API call
-    echo "Error: {$e->getMessage()}\n";
-}
+// Call the deleteModel method with id.
+OpenAIFactory::request('deleteModel', 'curie:ft-...');

@@ -16,40 +16,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../OpenAIFactory.php';
 
-use SoftCreatR\OpenAI\OpenAI;
-
-// Replace 'your-api-key' with your actual OpenAI API key
-$apiKey = 'your-api-key';
-
-// Instantiate the OpenAI class
-$openAI = OpenAI::getInstance($apiKey);
-
-// Set the transcription options
-$options = [
+// Call the createTranscription method with options.
+OpenAIFactory::request('createTranscription', [
     'file' => __DIR__ . '/fixtures/audio.mp3',
     'model' => 'whisper-1',
-];
-
-// Call the createTranscription method
-try {
-    $response = $openAI->createTranscription($options);
-
-    // Check if the response has a 200 status code (success)
-    if ($response->getStatusCode() === 200) {
-        // Decode the response body
-        $transcription = \json_decode($response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
-
-        // Print the transcription information as a JSON string
-        echo "============\n| Response |\n============\n\n";
-        echo \json_encode($transcription, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
-        echo "\n\n============\n";
-    } else {
-        // In case of a non-200 status code, print the response body
-        echo "Error: {$response->getBody()}\n";
-    }
-} catch (Exception $e) {
-    // Handle any exceptions during the API call
-    echo "Error: {$e->getMessage()}\n";
-}
+]);

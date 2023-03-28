@@ -21,7 +21,6 @@ namespace SoftCreatR\OpenAI\Exception;
 use Exception;
 use Throwable;
 
-use const JSON_ERROR_NONE;
 use const JSON_THROW_ON_ERROR;
 
 /**
@@ -36,21 +35,34 @@ class OpenAIException extends Exception
      * @param int $code The exception code.
      * @param Throwable|null $previous The previous exception used for the exception chaining.
      */
-    public function __construct($message = "", $code = 0, ?Throwable $previous = null)
+    public function __construct(
+        string $message = "An unknown error occurred",
+        int $code = 0,
+        ?Throwable $previous = null
+    ) {
+        parent::__construct($this->extractErrorMessageFromJson($message), $code, $previous);
+    }
+
+    /**
+     * Extracts the error message from a JSON-encoded string, if available.
+     *
+     * @param string $errorMessage The error message, encoded as a JSON string.
+     *
+     * @return string The extracted error message, or the original error message if JSON decoding failed,
+     *                or the error message does not contain the expected structure.
+     */
+    private function extractErrorMessageFromJson(string $errorMessage): string
     {
         try {
-            if (
-                \is_string($message)
-                && \is_array(\json_decode($message, true, 512, JSON_THROW_ON_ERROR))
-                && (\json_last_error() === JSON_ERROR_NONE)
-            ) {
-                $decoded = \json_decode($message, true, 512, JSON_THROW_ON_ERROR);
-                $message = $decoded['error']['message'] ?? $decoded;
+            $decoded = \json_decode($errorMessage, true, 512, JSON_THROW_ON_ERROR);
+
+            if (\is_array($decoded) && isset($decoded['error']['message'])) {
+                return $decoded['error']['message'];
             }
         } catch (Exception $e) {
             // ignore
         }
 
-        parent::__construct($message, $code, $previous);
+        return $errorMessage;
     }
 }

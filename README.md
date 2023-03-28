@@ -4,17 +4,18 @@
 
 This PHP library provides a simple wrapper for the OpenAI API, allowing you to easily integrate the OpenAI API into your PHP projects.
 
+
 ## Features
 
 -   Easy integration with OpenAI API
 -   Supports all OpenAI API endpoints
--   Singleton pattern implementation for efficient resource management
--   Built with Guzzle HTTP client for making API requests
+-   Utilizes PSR-17 and PSR-18 compliant HTTP clients, and factories for making API requests
 
 ## Requirements
 
 -   PHP 7.4 or higher
--   [Guzzle](https://github.com/guzzle/guzzle) HTTP client
+-   A PSR-17 HTTP Factory implementation (e.g., [guzzle/psr7](https://github.com/guzzle/psr7) or [nyholm/psr7](https://github.com/Nyholm/psr7))
+-   A PSR-18 HTTP Client implementation (e.g., [guzzlehttp/guzzle](https://github.com/guzzle/guzzle) or [symfony/http-client](https://github.com/symfony/http-client))
 
 ## Installation
 
@@ -34,7 +35,7 @@ First, include the library in your project:
 require_once 'vendor/autoload.php';
 ```
 
-Then, create an instance of the `OpenAI` class with your API key and organization (optional):
+Then, create an instance of the `OpenAI` class with your API key, organization (optional), an HTTP client, an HTTP request factory, and an HTTP stream factory:
 
 ```php
 use SoftCreatR\OpenAI\OpenAI;
@@ -42,7 +43,12 @@ use SoftCreatR\OpenAI\OpenAI;
 $apiKey = 'your_api_key';
 $organisation = 'your_organisation_id'; // optional
 
-$openAI = OpenAI::getInstance($apiKey, $organisation);
+// Replace these lines with your chosen PSR-17 and PSR-18 compatible HTTP client and factories
+$httpClient = new YourChosenHttpClient();
+$requestFactory = new YourChosenRequestFactory();
+$streamFactory = new YourChosenStreamFactory();
+
+$openAI = new OpenAI($httpClient, $requestFactory, $streamFactory, $apiKey, $organisation);
 ```
 
 Now you can call any supported OpenAI API endpoint using the magic method `__call`:
@@ -59,7 +65,7 @@ if ($response->getStatusCode() === 200) {
 }
 ```
 
-For more details on how to use each endpoint, refer to the [OpenAI API documentation](https://platform.openai.com/docs/api-reference).
+For more details on how to use each endpoint, refer to the [OpenAI API documentation](https://platform.openai.com/docs/api-reference), and the [examples](https://github.com/SoftCreatR/php-openai-sdk/tree/main/examples) provided in the repository.
 
 ## Supported Methods
 

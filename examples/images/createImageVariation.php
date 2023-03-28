@@ -16,41 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../OpenAIFactory.php';
 
-use SoftCreatR\OpenAI\OpenAI;
-
-// Replace 'your-api-key' with your actual OpenAI API key
-$apiKey = 'your-api-key';
-
-// Instantiate the OpenAI class
-$openAI = OpenAI::getInstance($apiKey);
-
-// Set the image variation options
-$options = [
+// Call the createImageVariation method with options.
+OpenAIFactory::request('createImageVariation', [
     'image' => __DIR__ . '/fixtures/otter.png',
     'n' => 2,
     'size' => '256x256',
-];
-
-// Call the createImageVariation method
-try {
-    $response = $openAI->createImageVariation($options);
-
-    // Check if the response has a 200 status code (success)
-    if ($response->getStatusCode() === 200) {
-        // Decode the response body
-        $image = \json_decode($response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
-
-        // Print the image information as a JSON string
-        echo "============\n| Response |\n============\n\n";
-        echo \json_encode($image, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
-        echo "\n\n============\n";
-    } else {
-        // In case of a non-200 status code, print the response body
-        echo "Error: {$response->getBody()}\n";
-    }
-} catch (Exception $e) {
-    // Handle any exceptions during the API call
-    echo "Error: {$e->getMessage()}\n";
-}
+]);

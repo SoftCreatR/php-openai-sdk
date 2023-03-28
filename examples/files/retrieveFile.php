@@ -16,37 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../OpenAIFactory.php';
 
-use SoftCreatR\OpenAI\OpenAI;
-
-// Replace 'your-api-key' with your actual OpenAI API key
-$apiKey = 'your-api-key';
-
-// Instantiate the OpenAI class
-$openAI = OpenAI::getInstance($apiKey);
-
-// Set the file ID you want to retrieve
-$fileId = 'file-XjGxS3KTG0uNmNOK362iJua3';
-
-// Call the retrieveFile method
-try {
-    $response = $openAI->retrieveFile($fileId);
-
-    // Check if the response has a 200 status code (success)
-    if ($response->getStatusCode() === 200) {
-        // Decode the response body
-        $file = \json_decode($response->getBody(), true, 512, \JSON_THROW_ON_ERROR);
-
-        // Print the file information as a JSON string
-        echo "============\n| Response |\n============\n\n";
-        echo \json_encode($file, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
-        echo "\n\n============\n";
-    } else {
-        // In case of a non-200 status code, print the response body
-        echo "Error: {$response->getBody()}\n";
-    }
-} catch (Exception $e) {
-    // Handle any exceptions during the API call
-    echo "Error: {$e->getMessage()}\n";
-}
+// Call the retrieveFile method with id.
+OpenAIFactory::request('retrieveFile', 'file-...');

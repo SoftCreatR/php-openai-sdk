@@ -18,28 +18,30 @@
 
 namespace SoftCreatR\OpenAI;
 
-use Composer\InstalledVersions;
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\MultipartStream;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\RequestOptions;
 use JsonException;
 use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\UriFactoryInterface;
+use Psr\Http\Message\UriInterface;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 
 use const JSON_THROW_ON_ERROR;
-use const PHP_VERSION;
 
 /**
- * Class ScOpenAI
- *
  * A wrapper for the OpenAI API.
  *
+ * @property string $apiKey
+ * @property string $organisation
+ * @property string $origin
+ *
  * @method ResponseInterface cancelFineTune(string $id)
+ * @method ResponseInterface createChatCompletion(array $options = [])
+ * @method ResponseInterface createCompletion(array $options = [])
  * @method ResponseInterface createEdit(array $options = [])
  * @method ResponseInterface createEmbedding(array $options = [])
  * @method ResponseInterface createFile(array $options = [])
@@ -63,61 +65,42 @@ use const PHP_VERSION;
  */
 class OpenAI
 {
-    private const DEFAULT_MODEL = 'text-davinci-002';
-
-    private const DEFAULT_CHAT_MODEL = 'gpt-3.5-turbo';
+    /**
+     * The HTTP client instance used for sending requests.
+     */
+    private ClientInterface $httpClient;
 
     /**
-     * @var array<string, string> Custom headers for the API requests.
+     * The PSR-17 request factory instance used for creating requests.
      */
-    private array $headers = [];
+    private RequestFactoryInterface $requestFactory;
 
     /**
-     * @var int Timeout for the API requests in seconds.
+     * The PSR-17 stream factory instance used for creating request bodies.
      */
-    private int $timeout = 60;
+    private StreamFactoryInterface $streamFactory;
 
     /**
-     * @var string|null The proxy settings to be used for API requests
+     * The PSR-17 URI factory instance used for creating URIs.
      */
-    private ?string $proxy = null;
+    private UriFactoryInterface $uriFactory;
 
-    /**
-     * @var string The API key.
-     */
-    private string $apiKey;
-
-    /**
-     * @var ?ClientInterface Instance of a configured Guzzle HTTP client, using cURL.
-     */
-    private ?ClientInterface $httpClient = null;
-
-    /**
-     * @var self|null The singleton instance of the OpenAI class.
-     */
-    private static ?OpenAI $instance = null;
-
-    /**
-     * Private constructor to prevent creating a new instance outside the class.
-     */
-    private function __construct(string $apiKey, ?string $organisation = null)
-    {
+    public function __construct(
+        RequestFactoryInterface $requestFactory,
+        StreamFactoryInterface $streamFactory,
+        UriFactoryInterface $uriFactory,
+        ClientInterface $httpClient,
+        string $apiKey,
+        string $organisation = '',
+        string $origin = ''
+    ) {
+        $this->requestFactory = $requestFactory;
+        $this->streamFactory = $streamFactory;
+        $this->uriFactory = $uriFactory;
+        $this->httpClient = $httpClient;
         $this->apiKey = $apiKey;
-        $this->headers['openai-organization'] = $organisation;
-    }
-
-    /**
-     * Get the singleton instance of the OpenAI class.
-     *
-     * @return OpenAI The singleton instance of the OpenAI class.
-     */
-    public static function getInstance(string $apiKey, ?string $organisation = null): self
-    {
-        if (self::$instance === null) {
-            self::$instance = new self($apiKey, $organisation);
-        }
-
-        return self::$instance;
+        $this->organisation = $organisation;
+        $this->origin = $origin;
     }
 
     /**
@@ -128,12 +111,11 @@ class OpenAI
      *
      * @return ResponseInterface The API response.
      *
-     * @throws OpenAIException If an error occurs during the API request.
-     * @throws JsonException If there is an error while encoding the request JSON.
+     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
      */
     public function __call(string $key, array $args): ResponseInterface
     {
-        $endpoint = OpenAIUrlFactory::getEndpoint($key);
+        $endpoint = OpenAIURLBuilder::getEndpoint($key);
         $httpMethod = $endpoint['method'];
 
         [$parameter, $opts] = $this->extractCallArguments($args);
@@ -145,6 +127,7 @@ class OpenAI
      * Extracts the arguments from the input array.
      *
      * @param array $args The input arguments.
+     *
      * @return array An array containing the extracted parameter and options.
      */
     private function extractCallArguments(array $args): array
@@ -170,125 +153,6 @@ class OpenAI
     }
 
     /**
-     * Sends a completion request to the OpenAI API.
-     *
-     * @param array $opts The options for the completion request.
-     *
-     * @return ResponseInterface The API response.
-     *
-     * @throws OpenAIException If an error occurs during the API request.
-     * @throws JsonException If there is an error while encoding the request JSON.
-     */
-    public function createCompletion(array $opts): ResponseInterface
-    {
-        return $this->processWithOptions('createCompletion', self::DEFAULT_MODEL, $opts);
-    }
-
-    /**
-     * Sends a chat completion request to the OpenAI API.
-     *
-     * @param array $opts The options for the chat completion request.
-     *
-     * @return ResponseInterface The API response.
-     *
-     * @throws OpenAIException If an error occurs during the API request.
-     * @throws JsonException
-     */
-    public function createChatCompletion(array $opts): ResponseInterface
-    {
-        return $this->processWithOptions('createChatCompletion', self::DEFAULT_CHAT_MODEL, $opts);
-    }
-
-    /**
-     * Set the timeout value for the HTTP client.
-     *
-     * @param int $timeout The timeout value in seconds.
-     *
-     * @return self Returns the current instance to allow for method chaining.
-     */
-    public function setTimeout(int $timeout): self
-    {
-        $this->timeout = $timeout;
-
-        $this->httpClient = null;
-
-        return self::$instance;
-    }
-
-    /**
-     * Set the proxy to be used for API requests.
-     *
-     * @param string|null $proxy The proxy URL, e.g. 'http://proxy.example.com:8080'
-     *
-     * @return self Returns the current OpenAI instance for method chaining
-     */
-    public function setProxy(?string $proxy): self
-    {
-        $this->proxy = $proxy;
-
-        return $this;
-    }
-
-    /**
-     * Set the HTTP client instance.
-     *
-     * @param ClientInterface $client The HTTP client instance to use.
-     *
-     * @return self Returns the current instance to allow for method chaining.
-     */
-    public function setHttpClient(ClientInterface $client): self
-    {
-        $this->httpClient = $client;
-
-        return $this;
-    }
-
-    /**
-     * Returns a configured Guzzle HTTP client.
-     *
-     * @return ClientInterface The configured Guzzle HTTP client.
-     */
-    public function getHttpClient(): ClientInterface
-    {
-        if (null === $this->httpClient) {
-            $options = [
-                RequestOptions::HTTP_ERRORS => false,
-                RequestOptions::HEADERS => [
-                    'User-Agent' => 'SoftCreatR/PHP-OpenAI (' . $this->getPackageVersion() . ') PHP/' . PHP_VERSION,
-                ],
-                RequestOptions::TIMEOUT => $this->timeout,
-            ];
-
-            if (null !== $this->proxy) {
-                $options[RequestOptions::PROXY] = $this->proxy;
-            }
-
-            $this->httpClient = new Client($options);
-        }
-
-        return $this->httpClient;
-    }
-
-    /**
-     * Processes a request to the OpenAI API with the provided options.
-     *
-     * @param string $endpoint The API endpoint.
-     * @param string $defaultModel The default model to use if not provided in the options.
-     * @param array $opts The options for the request.
-     *
-     * @return ResponseInterface The API response.
-     *
-     * @throws OpenAIException If an error occurs during the API request.
-     * @throws JsonException If there is an error while encoding the request JSON.
-     */
-    private function processWithOptions(string $endpoint, string $defaultModel, array $opts): ResponseInterface
-    {
-        $opts['model'] = $opts['model'] ?? $defaultModel;
-
-        return $this->callAPI('POST', $endpoint, null, $opts);
-    }
-
-    /**
      * Calls the OpenAI API with the provided method, key, parameter, and options.
      *
      * @param string $method The HTTP method for the request.
@@ -298,126 +162,169 @@ class OpenAI
      *
      * @return ResponseInterface The API response.
      *
-     * @throws OpenAIException If an error occurs during the API request.
-     * @throws JsonException If there is an error while encoding the request JSON.
+     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
      */
     private function callAPI(string $method, string $key, ?string $parameter = null, array $opts = []): ResponseInterface
     {
-        return $this->sendRequest(OpenAIUrlFactory::createUrl($key, $parameter), $method, $opts);
+        return $this->sendRequest(
+            OpenAIURLBuilder::createUrl($this->uriFactory, $key, $parameter, $this->origin),
+            $method,
+            $opts
+        );
     }
 
     /**
-     * Sends an HTTP request to the OpenAI API.
+     * Sends an HTTP request to the OpenAI API and returns the response.
      *
-     * @param string $uri The URL for the API request.
-     * @param string $method The HTTP method for the request.
-     * @param array $opts The options for the request.
+     * @param UriInterface $uri The URL to send the request to.
+     * @param string $method The HTTP method to use (e.g., 'GET', 'POST', etc.).
+     * @param array $params An associative array of parameters to send with the request (optional).
      *
-     * @return ResponseInterface The API response.
+     * @return ResponseInterface The response from the OpenAI API.
      *
-     * @throws OpenAIException If an error occurs during the API request.
-     * @throws JsonException If there is an error while encoding the request JSON.
+     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
+     * @throws Exception
      */
-    private function sendRequest(string $uri, string $method, array $opts = []): ResponseInterface
+    private function sendRequest(UriInterface $uri, string $method, array $params = []): ResponseInterface
     {
-        $headers = $this->buildHeaders();
-        $requestBody = $this->buildRequestBody($opts, $headers);
+        $request = $this->requestFactory->createRequest($method, $uri);
+
+        $isMultipart = $this->isMultipartRequest($params);
+        $boundary = $isMultipart ? $this->generateMultipartBoundary() : '';
+        $headers = $this->createHeaders($isMultipart, $boundary);
+        $request = $this->applyHeaders($request, $headers);
+
+        $body = $isMultipart
+            ? $this->createMultipartStream($params, $boundary)
+            : $this->createJsonBody($params);
+
+        if (!empty($body)) {
+            $request = $request->withBody($this->streamFactory->createStream($body));
+        }
 
         try {
-            $request = new Request($method, $uri, \array_merge($this->headers, $headers), $requestBody);
+            $response = $this->httpClient->sendRequest($request);
 
-            return $this->getHttpClient()->send($request);
-        } catch (RequestException | ClientExceptionInterface | Exception $e) {
-            return $this->handleSendRequestExceptions($e);
+            // Check if the response has a non-200 status code (error)
+            if ($response->getStatusCode() >= 400) {
+                throw new OpenAIException($response->getBody()->getContents(), $response->getStatusCode());
+            }
+        } catch (ClientExceptionInterface $e) {
+            throw new OpenAIException($e->getMessage(), $e->getCode(), $e->getPrevious());
+        }
+
+        return $response;
+    }
+
+    /**
+     * Generates a unique multipart boundary string.
+     *
+     * @return string The generated multipart boundary string.
+     *
+     * @throws Exception
+     */
+    private function generateMultipartBoundary(): string
+    {
+        return '----OpenAI' . \bin2hex(\random_bytes(16));
+    }
+
+    /**
+     * Creates the headers for an API request.
+     *
+     * @param bool $isMultipart Indicates whether the request is multipart or not.
+     * @param string|null $boundary The multipart boundary string, if applicable.
+     *
+     * @return array An associative array of headers.
+     */
+    private function createHeaders(bool $isMultipart, ?string $boundary): array
+    {
+        return [
+            'authorization' => 'Bearer ' . $this->apiKey,
+            'openai-organization' => $this->organisation ?: '',
+            'content-type' => $isMultipart
+                ? "multipart/form-data; boundary={$boundary}"
+                : 'application/json',
+        ];
+    }
+
+    /**
+     * Applies the headers to the given request.
+     *
+     * @param RequestInterface $request The request to apply headers to.
+     * @param array $headers An associative array of headers to apply.
+     *
+     * @return RequestInterface The request with headers applied.
+     */
+    private function applyHeaders(RequestInterface $request, array $headers): RequestInterface
+    {
+        foreach ($headers as $key => $value) {
+            $request = $request->withHeader($key, $value);
+        }
+
+        return $request;
+    }
+
+    /**
+     * Creates a JSON encoded body string from the given parameters.
+     *
+     * @param array $params An associative array of parameters to encode as JSON.
+     *
+     * @return string The JSON encoded body string, or an empty string if encoding fails.
+     */
+    private function createJsonBody(array $params): string
+    {
+        try {
+            return !empty($params) ? \json_encode($params, JSON_THROW_ON_ERROR) : '';
+        } catch (JsonException $e) {
+            // Fallback to an empty string if encoding fails
+            return '';
         }
     }
 
     /**
-     * Builds the headers for the API request.
+     * Creates a multipart stream for sending files, images, or masks in a request.
      *
-     * @return array An associative array of header names and their corresponding values.
+     * @param array $params An associative array of parameters to send with the request.
+     * @param string $multipartBoundary A string used as a boundary to separate parts of the multipart stream.
+     *
+     * @return string The multipart stream as a string.
+     * @throws Exception
      */
-    private function buildHeaders(): array
+    private function createMultipartStream(array $params, string $multipartBoundary): string
     {
-        return ['authorization' => 'Bearer ' . $this->apiKey];
-    }
+        $multipartStream = '';
 
-    /**
-     * Builds the request body based on the provided options.
-     *
-     * @param array $opts An associative array of options for the API request.
-     *
-     * @return mixed The request body as a JSON-encoded string, a MultipartStream object, or an empty string.
-     *
-     * @throws JsonException If a JSON encoding error occurs.
-     */
-    private function buildRequestBody(array $opts, array &$headers): string
-    {
-        if (\array_key_exists('file', $opts) || \array_key_exists('image', $opts)) {
-            $multipart = $this->buildMultipart($opts);
+        foreach ($params as $key => $value) {
+            $multipartStream .= "--{$multipartBoundary}\r\n";
+            $multipartStream .= "Content-Disposition: form-data; name=\"{$key}\"";
 
-            $requestBody = new MultipartStream($multipart);
-        } else {
-            $headers['content-type'] = 'application/json';
-            $requestBody = !empty($opts) ? \json_encode($opts, JSON_THROW_ON_ERROR) : '';
-        }
-
-        return $requestBody;
-    }
-
-    /**
-     * Builds the multipart content for a multipart request.
-     *
-     * @param array $opts An associative array of options for the API request.
-     *
-     * @return array An array of multipart content.
-     */
-    private function buildMultipart(array $opts): array
-    {
-        $multipart = [];
-
-        foreach ($opts as $key => $value) {
-            if ($key === 'file' || $key === 'image' || $key === 'mask') {
-                $multipart[] = [
-                    'name' => $key,
-                    'contents' => \fopen($value, 'rb'),
-                ];
+            if (\in_array($key, ['file', 'image', 'mask'], true)) {
+                $filename = \bin2hex(\random_bytes(20)) . '.' . \mb_strtolower(\mb_substr(
+                    \basename($value),
+                    \mb_strrpos(\basename($value), '.') + 1
+                ));
+                $multipartStream .= "; filename=\"{$filename}\"\r\n";
+                $multipartStream .= "Content-Type: application/octet-stream\r\n";
+                $multipartStream .= "\r\n" . \file_get_contents($value) . "\r\n";
             } else {
-                $multipart[] = [
-                    'name' => $key,
-                    'contents' => $value,
-                ];
+                $multipartStream .= "\r\n\r\n" . $value . "\r\n";
             }
         }
 
-        return $multipart;
+        $multipartStream .= "--{$multipartBoundary}--\r\n";
+
+        return $multipartStream;
     }
 
     /**
-     * Handles exceptions that occur during the sendRequest method.
+     * Determines if a request is a multipart request based on the provided parameters.
      *
-     * @param RequestException|ClientExceptionInterface|Exception $e The exception that occurred.
+     * @param array $params An associative array of parameters to check for multipart request indicators.
      *
-     * @throws OpenAIException A custom exception with the appropriate error message and code.
+     * @return bool True if the request is a multipart request, false otherwise.
      */
-    private function handleSendRequestExceptions(Exception $e): ResponseInterface
+    private function isMultipartRequest(array $params): bool
     {
-        if (\method_exists($e, 'getResponse') && null !== $e->getResponse()) {
-            $message = $e->getResponse()->getBody()->getContents();
-        } else {
-            $message = $e->getMessage();
-        }
-
-        throw new OpenAIException($message, $e->getCode(), $e);
-    }
-
-    /**
-     * Get the package version from the composer.json file.
-     *
-     * @return string The package version
-     */
-    private function getPackageVersion(): string
-    {
-        return InstalledVersions::getRootPackage()['version'] ?? 'unknown';
+        return \array_intersect_key(\array_flip(['file', 'image', 'mask']), $params) !== [];
     }
 }
