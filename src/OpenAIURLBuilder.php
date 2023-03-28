@@ -19,7 +19,7 @@
 namespace SoftCreatR\OpenAI;
 
 use InvalidArgumentException;
-use Nyholm\Psr7\Uri;
+use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -106,6 +106,7 @@ final class OpenAIURLBuilder
     /**
      * Creates a URL for the specified OpenAI API endpoint.
      *
+     * @param UriFactoryInterface $uriFactory The PSR-17 URI factory instance used for creating URIs.
      * @param string $key The key representing the API endpoint.
      * @param string|null $parameter Optional parameter to replace in the endpoint path.
      * @param string $origin Custom origin (Hostname), if needed.
@@ -114,12 +115,17 @@ final class OpenAIURLBuilder
      *
      * @throws InvalidArgumentException If the provided key is invalid.
      */
-    public static function createUrl(string $key, ?string $parameter = null, string $origin = ''): UriInterface
-    {
+    public static function createUrl(
+        UriFactoryInterface $uriFactory,
+        string $key,
+        ?string $parameter = null,
+        string $origin = ''
+    ): UriInterface {
         $endpoint = self::getEndpoint($key);
         $path = self::replacePathParameters($endpoint['path'], $parameter);
 
-        return (new Uri())
+        return $uriFactory
+            ->createUri()
             ->withScheme('https')
             ->withHost($origin ?: self::ORIGIN)
             ->withPath(self::API_VERSION . $path);

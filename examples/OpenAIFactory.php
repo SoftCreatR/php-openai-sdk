@@ -18,8 +18,8 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use GuzzleHttp\Client as GuzzleClient;
-use Nyholm\Psr7\Factory\Psr17Factory;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\HttpFactory;
 use SoftCreatR\OpenAI\OpenAI;
 
 class OpenAIFactory
@@ -28,16 +28,16 @@ class OpenAIFactory
     private const API_KEY = 'your_api_key';
 
     // Optionally, set your organization ID here
-    private const ORGANIZATION_ID = null;
+    private const ORGANIZATION_ID = '';
 
     public static function create(
         string $apiKey = self::API_KEY,
         ?string $organisation = self::ORGANIZATION_ID
     ): OpenAI {
-        $psr17Factory = new Psr17Factory();
-        $guzzleClient = new GuzzleClient();
+        $psr17Factory = new HttpFactory();
+        $httpClient = new Client();
 
-        return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $guzzleClient, $apiKey, $organisation);
+        return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $httpClient, $apiKey, $organisation);
     }
 
     public static function request(string $method, $args = []): void

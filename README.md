@@ -14,7 +14,7 @@ This PHP library provides a simple wrapper for the OpenAI API, allowing you to e
 ## Requirements
 
 -   PHP 7.4 or higher
--   A PSR-17 HTTP Factory implementation (e.g., [nyholm/psr7](https://github.com/Nyholm/psr7) or [guzzle/psr7](https://github.com/guzzle/psr7))
+-   A PSR-17 HTTP Factory implementation (e.g., [guzzle/psr7](https://github.com/guzzle/psr7) or [nyholm/psr7](https://github.com/Nyholm/psr7))
 -   A PSR-18 HTTP Client implementation (e.g., [guzzlehttp/guzzle](https://github.com/guzzle/guzzle) or [symfony/http-client](https://github.com/symfony/http-client))
 
 ## Installation

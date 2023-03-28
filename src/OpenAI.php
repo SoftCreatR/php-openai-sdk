@@ -18,6 +18,7 @@
 
 namespace SoftCreatR\OpenAI;
 
+use Exception;
 use JsonException;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
@@ -26,6 +27,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
+use Psr\Http\Message\UriInterface;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 
 use const JSON_THROW_ON_ERROR;
@@ -65,29 +67,21 @@ class OpenAI
 {
     /**
      * The HTTP client instance used for sending requests.
-     *
-     * @var ClientInterface
      */
     private ClientInterface $httpClient;
 
     /**
      * The PSR-17 request factory instance used for creating requests.
-     *
-     * @var RequestFactoryInterface
      */
     private RequestFactoryInterface $requestFactory;
 
     /**
      * The PSR-17 stream factory instance used for creating request bodies.
-     *
-     * @var StreamFactoryInterface
      */
     private StreamFactoryInterface $streamFactory;
 
     /**
      * The PSR-17 URI factory instance used for creating URIs.
-     *
-     * @var UriFactoryInterface
      */
     private UriFactoryInterface $uriFactory;
 
@@ -172,23 +166,27 @@ class OpenAI
      */
     private function callAPI(string $method, string $key, ?string $parameter = null, array $opts = []): ResponseInterface
     {
-        return $this->sendRequest(OpenAIURLBuilder::createUrl($key, $parameter, $this->origin), $method, $opts);
+        return $this->sendRequest(
+            OpenAIURLBuilder::createUrl($this->uriFactory, $key, $parameter, $this->origin),
+            $method,
+            $opts
+        );
     }
 
     /**
      * Sends an HTTP request to the OpenAI API and returns the response.
      *
-     * @param string $url The URL to send the request to.
+     * @param UriInterface $uri The URL to send the request to.
      * @param string $method The HTTP method to use (e.g., 'GET', 'POST', etc.).
      * @param array $params An associative array of parameters to send with the request (optional).
      *
      * @return ResponseInterface The response from the OpenAI API.
      *
      * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
+     * @throws Exception
      */
-    private function sendRequest(string $url, string $method, array $params = []): ResponseInterface
+    private function sendRequest(UriInterface $uri, string $method, array $params = []): ResponseInterface
     {
-        $uri = $this->uriFactory->createUri($url);
         $request = $this->requestFactory->createRequest($method, $uri);
 
         $isMultipart = $this->isMultipartRequest($params);
@@ -222,10 +220,12 @@ class OpenAI
      * Generates a unique multipart boundary string.
      *
      * @return string The generated multipart boundary string.
+     *
+     * @throws Exception
      */
     private function generateMultipartBoundary(): string
     {
-        return '----OpenAI' . \hash('sha256', \uniqid('', true));
+        return '----OpenAI' . \bin2hex(\random_bytes(16));
     }
 
     /**
@@ -239,9 +239,9 @@ class OpenAI
     private function createHeaders(bool $isMultipart, ?string $boundary): array
     {
         return [
-            'Authorization' => 'Bearer ' . $this->apiKey,
-            'OpenAI-Organization' => $this->organisation ?: '',
-            'Content-Type' => $isMultipart
+            'authorization' => 'Bearer ' . $this->apiKey,
+            'openai-organization' => $this->organisation ?: '',
+            'content-type' => $isMultipart
                 ? "multipart/form-data; boundary={$boundary}"
                 : 'application/json',
         ];
@@ -288,6 +288,7 @@ class OpenAI
      * @param string $multipartBoundary A string used as a boundary to separate parts of the multipart stream.
      *
      * @return string The multipart stream as a string.
+     * @throws Exception
      */
     private function createMultipartStream(array $params, string $multipartBoundary): string
     {
@@ -298,7 +299,10 @@ class OpenAI
             $multipartStream .= "Content-Disposition: form-data; name=\"{$key}\"";
 
             if (\in_array($key, ['file', 'image', 'mask'], true)) {
-                $filename = \basename($value);
+                $filename = \bin2hex(\random_bytes(20)) . '.' . \mb_strtolower(\mb_substr(
+                    \basename($value),
+                    \mb_strrpos(\basename($value), '.') + 1
+                ));
                 $multipartStream .= "; filename=\"{$filename}\"\r\n";
                 $multipartStream .= "Content-Type: application/octet-stream\r\n";
                 $multipartStream .= "\r\n" . \file_get_contents($value) . "\r\n";

@@ -18,6 +18,7 @@
 
 namespace SoftCreatR\OpenAI\Tests;
 
+use GuzzleHttp\Psr7\HttpFactory;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use SoftCreatR\OpenAI\OpenAIURLBuilder;
@@ -44,7 +45,7 @@ class OpenAIURLBuilderTest extends TestCase
 
     public function testCreateUrl(): void
     {
-        $url = OpenAIURLBuilder::createUrl('listModels');
+        $url = OpenAIURLBuilder::createUrl(new HttpFactory(), 'listModels');
 
         $this->assertEquals('https', $url->getScheme());
         $this->assertEquals(OpenAIURLBuilder::ORIGIN, $url->getHost());
@@ -53,7 +54,7 @@ class OpenAIURLBuilderTest extends TestCase
 
     public function testCreateUrlWithPathParameter(): void
     {
-        $url = OpenAIURLBuilder::createUrl('retrieveFile', 'fileId');
+        $url = OpenAIURLBuilder::createUrl(new HttpFactory(), 'retrieveFile', 'fileId');
 
         $this->assertEquals('https', $url->getScheme());
         $this->assertEquals(OpenAIURLBuilder::ORIGIN, $url->getHost());
@@ -64,6 +65,6 @@ class OpenAIURLBuilderTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        OpenAIURLBuilder::createUrl('invalidKey');
+        OpenAIURLBuilder::createUrl(new HttpFactory(), 'invalidKey');
     }
 }

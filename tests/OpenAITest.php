@@ -19,9 +19,9 @@
 namespace SoftCreatR\OpenAI\Tests;
 
 use Exception;
+use GuzzleHttp\Psr7\HttpFactory;
+use GuzzleHttp\Psr7\Response;
 use JsonException;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
@@ -42,36 +42,26 @@ class OpenAITest extends TestCase
 {
     /**
      * The OpenAI instance used for testing.
-     *
-     * @var OpenAI
      */
     private OpenAI $openAI;
 
     /**
      * The mocked HTTP client used for simulating API responses.
-     *
-     * @var ClientInterface
      */
     private ClientInterface $mockedClient;
 
     /**
      * API key for the OpenAI API.
-     *
-     * @var string
      */
     private string $apiKey = 'sk-...';
 
     /**
      * Organization identifier for the OpenAI API.
-     *
-     * @var string
      */
     private string $organisation = 'org-...';
 
     /**
      * Custom origin for the OpenAI API, if needed.
-     *
-     * @var string
      */
     private string $origin = 'example.com';
 
@@ -80,14 +70,12 @@ class OpenAITest extends TestCase
      * a mocked HTTP client, then assigning the mocked client to the OpenAI instance.
      *
      * This method is called before each test method is executed.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         parent::setUp();
 
-        $psr17Factory = new Psr17Factory();
+        $psr17Factory = new HttpFactory();
         $this->mockedClient = $this->createMock(ClientInterface::class);
 
         $this->openAI = new OpenAI(
