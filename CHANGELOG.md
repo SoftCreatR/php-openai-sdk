@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Removed Guzzle dependency from the project.
+- Removed Guzzle dependency from the project (it's still there, but just as dev-dependency for the examples, and for the unit tests)
 - Removed the singleton pattern from the `OpenAI` class.
 - Major refactoring of the `OpenAI` class to support any PSR-17 and PSR-18 compatible HTTP client and factory.
 - Refactored and optimized the test cases in `OpenAITest`.
