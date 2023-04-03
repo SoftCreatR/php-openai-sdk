@@ -22,7 +22,7 @@ This PHP library provides a simple wrapper for the OpenAI API, allowing you to e
 You can install the library via [Composer](https://getcomposer.org/):
 
 ```bash
-composer require softcreatr/openai-php-wrapper
+composer require softcreatr/php-openai-sdk
 ```
 
 ## Usage
