@@ -18,10 +18,7 @@
 
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// Call the createCompletion method with options.
-OpenAIFactory::request('createCompletion', [
-    'model' => 'gpt-3.5-turbo-instruct',
-    'prompt' => 'Say this is a test',
-    'max_tokens' => 7,
-    'temperature' => 0,
+// Call the createFineTuningJob method with options.
+OpenAIFactory::request('createFineTuningJob', [
+    'training_file' => 'file-XGinujblHPwGLSztz8cPS8XY',
 ]);

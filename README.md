@@ -102,10 +102,12 @@ For more details on how to use each endpoint, refer to the [OpenAI API documenta
     -   `createEmbedding(array $options = [])`
 
 ### Audio
--   [Create Transcription](https://platform.openai.com/docs/api-reference/audio/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/audio/createTranscription.php)
+-   [Create Transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/audio/createTranscription.php)
     -   `createTranscription(array $options = [])`
--   [Create Translation](https://platform.openai.com/docs/api-reference/audio/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/audio/createTranslation.php)
+-   [Create Translation](https://platform.openai.com/docs/api-reference/audio/createTranslation) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/audio/createTranslation.php)
     -   `createTranslation(array $options = [])`
+-   [Create Speech](https://platform.openai.com/docs/api-reference/audio/createSpeech) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/audio/createSpeech.php)
+    -   `createSpeech(array $options = [])`
 
 ### Files
 -   [List Files](https://platform.openai.com/docs/api-reference/files/list) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/files/listFiles.php)
@@ -119,7 +121,19 @@ For more details on how to use each endpoint, refer to the [OpenAI API documenta
 -   [Download File](https://platform.openai.com/docs/api-reference/files/retrieve-content) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/files/downloadFile.php)
     -   `downloadFile(string $id)`
 
-### Fine-tunes
+### Fine-tuning
+-   [Create Fine-tuning Job](https://platform.openai.com/docs/api-reference/fine-tuning/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tuning/createFineTuningJob.php)
+    -   `createFineTuningJob(array $options = [])`
+-   [List Fine-tuning Jobs](https://platform.openai.com/docs/api-reference/fine-tuning/list) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tuning/listFineTuningJobs.php)
+    -   `listFineTuningJobs()`
+-   [Retrieve Fine-tuning Job](https://platform.openai.com/docs/api-reference/fine-tuning/retrieve) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tuning/retrieveFineTuningJob.php)
+    -   `retrieveFineTuningJob(string $id)`
+-   [Cancel Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning/cancel) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tuning/cancelFineTuning.php)
+    -   `cancelFineTuning(string $id)`
+-   [List Fine-tuning Events](https://platform.openai.com/docs/api-reference/fine-tuning/list-events) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tuning/listFineTuningEvents.php)
+    -   `listFineTuningEvents(string $id, array $options = [])`
+
+### Fine-tunes (Deprecated)
 -   [Create Fine-tune](https://platform.openai.com/docs/api-reference/fine-tunes/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/createFineTune.php)
     -   `createFineTune(array $options = [])`
 -   [List Fine-tunes](https://platform.openai.com/docs/api-reference/fine-tunes/list) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/listFineTunes.php)

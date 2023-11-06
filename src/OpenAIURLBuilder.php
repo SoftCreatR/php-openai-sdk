@@ -63,6 +63,7 @@ final class OpenAIURLBuilder
         'createEmbedding' => ['method' => self::HTTP_METHOD_POST, 'path' => '/embeddings'],
 
         // Audio: https://platform.openai.com/docs/api-reference/audio
+        'createSpeech' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/speech'],
         'createTranscription' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/transcriptions'],
         'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations'],
 
@@ -73,7 +74,14 @@ final class OpenAIURLBuilder
         'retrieveFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s'],
         'downloadFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s/content'],
 
-        // Fine-tunes: https://platform.openai.com/docs/api-reference/fine-tunes
+        // Fine-tuning: https://platform.openai.com/docs/api-reference/fine-tuning
+        'createFineTuningJob' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/jobs'],
+        'listFineTuningJobs' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs'],
+        'retrieveFineTuningJob' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs/%s'],
+        'cancelFineTuning' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/jobs/%s/cancel'],
+        'listFineTuningEvents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs/%s/events'],
+
+        // [Deprecated] Fine-tunes: https://platform.openai.com/docs/api-reference/fine-tunes
         'createFineTune' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine-tunes'],
         'listFineTunes' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine-tunes'],
         'retrieveFineTune' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine-tunes/%s'],

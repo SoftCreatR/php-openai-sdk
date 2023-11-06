@@ -18,10 +18,11 @@
 
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// Call the createCompletion method with options.
-OpenAIFactory::request('createCompletion', [
-    'model' => 'gpt-3.5-turbo-instruct',
-    'prompt' => 'Say this is a test',
-    'max_tokens' => 7,
-    'temperature' => 0,
-]);
+// Call the createSpeech method with options. Save response to file.
+$response = OpenAIFactory::request('createSpeech', [
+    'model' => 'tts-1',
+    'input' => 'The quick brown fox jumped over the lazy dog.',
+    'voice' => 'alloy',
+], true);
+
+\file_put_contents(__DIR__ . '/fixtures/speech.mp3', $response);

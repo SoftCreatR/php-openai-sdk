@@ -21,5 +21,8 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the createChatCompletion method with options.
 OpenAIFactory::request('createChatCompletion', [
     'model' => 'gpt-3.5-turbo',
-    'messages' => [['role' => 'user', 'content' => 'Hello!']],
+    'messages' => [
+        ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+        ['role' => 'user', 'content' => 'Hello!'],
+    ],
 ]);

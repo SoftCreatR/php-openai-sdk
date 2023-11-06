@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.0] - 2023-11-06
+
+### Added
+
+- Added support for the new createSpeech-endpoint (https://platform.openai.com/docs/api-reference/audio/createSpeech)
+- Added support for the new fine-tuning-endpoints (https://platform.openai.com/docs/api-reference/fine-tuning)
+- Marked fine-tunes-endpoints as deprecated (soft)
+- Updated existing examples
 
 ## [2.0.0] - 2023-03-28
 

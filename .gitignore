@@ -3,3 +3,4 @@ vendor/
 /*.cache
 .idea/
 /coverage.xml
+/examples/audio/fixtures/speech.mp3

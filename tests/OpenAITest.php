@@ -95,7 +95,7 @@ class OpenAITest extends TestCase
     public function testCall(): void
     {
         $this->testApiCall(
-            fn () => $this->openAI->__call('retrieveModel', ['text-davinci-003']),
+            fn() => $this->openAI->__call('retrieveModel', ['gpt-3.5-turbo-instruct']),
             'listModels.json'
         );
     }
@@ -106,8 +106,8 @@ class OpenAITest extends TestCase
     public function testCreateCompletion(): void
     {
         $this->testApiCall(
-            fn () => $this->openAI->createCompletion([
-                'model' => 'text-davinci-002',
+            fn() => $this->openAI->createCompletion([
+                'model' => 'gpt-3.5-turbo-instruct',
                 'prompt' => 'Say this is a test',
                 'max_tokens' => 7,
                 'temperature' => 0,
@@ -127,7 +127,7 @@ class OpenAITest extends TestCase
     public function testCreateChatCompletion(): void
     {
         $this->testApiCall(
-            fn () => $this->openAI->createChatCompletion([
+            fn() => $this->openAI->createChatCompletion([
                 'model' => 'gpt-3.5-turbo',
                 'messages' => [['role' => 'user', 'content' => 'Hello!']],
             ]),

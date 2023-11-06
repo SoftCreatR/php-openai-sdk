@@ -40,7 +40,7 @@ class OpenAIFactory
         return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $httpClient, $apiKey, $organisation);
     }
 
-    public static function request(string $method, $args = []): void
+    public static function request(string $method, $args = [], $returnResponse = false)
     {
         // Instantiate the OpenAI class using the factory
         $openAI = self::create();
@@ -49,6 +49,10 @@ class OpenAIFactory
         try {
             // Call the specified method
             $response = $openAI->{$method}($args);
+
+            if ($returnResponse) {
+                return $response->getBody()->getContents();
+            }
 
             // Decode the response body
             $result = \json_decode(
