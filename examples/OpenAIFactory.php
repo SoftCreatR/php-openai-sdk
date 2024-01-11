@@ -31,13 +31,14 @@ class OpenAIFactory
     private const ORGANIZATION_ID = '';
 
     public static function create(
+        #[\SensitiveParameter]
         string $apiKey = self::API_KEY,
-        ?string $organisation = self::ORGANIZATION_ID
+        ?string $organization = self::ORGANIZATION_ID
     ): OpenAI {
         $psr17Factory = new HttpFactory();
         $httpClient = new Client();
 
-        return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $httpClient, $apiKey, $organisation);
+        return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $httpClient, $apiKey, $organization);
     }
 
     public static function request(string $method, $args = [], $returnResponse = false)

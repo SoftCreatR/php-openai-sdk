@@ -3,7 +3,7 @@
   "description": "A powerful and easy-to-use PHP SDK for the OpenAI API, allowing seamless integration of advanced AI-powered features into your PHP projects.",
   "license": "ISC",
   "type": "library",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "keywords": [
     "openai",
     "gpt",
@@ -33,6 +33,7 @@
     "psr/http-message": "^1.0"
   },
   "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3",
     "guzzlehttp/guzzle": "^7",
     "phpunit/phpunit": "^9"
   },

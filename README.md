@@ -41,7 +41,7 @@ Then, create an instance of the `OpenAI` class with your API key, organization (
 use SoftCreatR\OpenAI\OpenAI;
 
 $apiKey = 'your_api_key';
-$organisation = 'your_organisation_id'; // optional
+$organization = 'your_organization_id'; // optional
 
 // Replace these lines with your chosen PSR-17 and PSR-18 compatible HTTP client and factories
 $httpClient = new YourChosenHttpClient();
@@ -49,7 +49,7 @@ $requestFactory = new YourChosenRequestFactory();
 $streamFactory = new YourChosenStreamFactory();
 $uriFactory = new YourChosenUriFactory();
 
-$openAI = new OpenAI($requestFactory, $streamFactory, $uriFactory, $httpClient, $apiKey, $organisation);
+$openAI = new OpenAI($requestFactory, $streamFactory, $uriFactory, $httpClient, $apiKey, $organization);
 ```
 
 Now you can call any supported OpenAI API endpoint using the magic method `__call`:

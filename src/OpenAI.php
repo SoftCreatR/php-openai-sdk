@@ -28,6 +28,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
+use SensitiveParameter;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 
 use const JSON_THROW_ON_ERROR;
@@ -36,7 +37,7 @@ use const JSON_THROW_ON_ERROR;
  * A wrapper for the OpenAI API.
  *
  * @property string $apiKey
- * @property string $organisation
+ * @property string $organization
  * @property string $origin
  *
  * @method ResponseInterface cancelFineTune(string $id)
@@ -91,13 +92,29 @@ class OpenAI
      */
     private UriFactoryInterface $uriFactory;
 
+    /**
+     * OpenAI API Key
+     */
+    public string $apiKey = '';
+
+    /**
+     * OpenAI Organization ID
+     */
+    public string $organization = '';
+
+    /**
+     * OpenAI API Origin (defaults to api.openai.com)
+     */
+    public string $origin = '';
+
     public function __construct(
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface $streamFactory,
         UriFactoryInterface $uriFactory,
         ClientInterface $httpClient,
+        #[SensitiveParameter]
         string $apiKey,
-        string $organisation = '',
+        string $organization = '',
         string $origin = ''
     ) {
         $this->requestFactory = $requestFactory;
@@ -105,7 +122,7 @@ class OpenAI
         $this->uriFactory = $uriFactory;
         $this->httpClient = $httpClient;
         $this->apiKey = $apiKey;
-        $this->organisation = $organisation;
+        $this->organization = $organization;
         $this->origin = $origin;
     }
 
@@ -246,7 +263,7 @@ class OpenAI
     {
         return [
             'authorization' => 'Bearer ' . $this->apiKey,
-            'openai-organization' => $this->organisation ?: '',
+            'openai-organization' => $this->organization ?: '',
             'content-type' => $isMultipart
                 ? "multipart/form-data; boundary={$boundary}"
                 : 'application/json',

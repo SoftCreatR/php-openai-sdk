@@ -58,7 +58,7 @@ class OpenAITest extends TestCase
     /**
      * Organization identifier for the OpenAI API.
      */
-    private string $organisation = 'org-...';
+    private string $organization = 'org-...';
 
     /**
      * Custom origin for the OpenAI API, if needed.
@@ -84,7 +84,7 @@ class OpenAITest extends TestCase
             $psr17Factory,
             $this->mockedClient,
             $this->apiKey,
-            $this->organisation,
+            $this->organization,
             $this->origin
         );
     }
@@ -321,7 +321,7 @@ class OpenAITest extends TestCase
         }
 
         self::assertEquals($this->apiKey, $this->openAI->apiKey);
-        self::assertEquals($this->organisation, $this->openAI->organisation);
+        self::assertEquals($this->organization, $this->openAI->organization);
         self::assertEquals($this->origin, $this->openAI->origin);
         self::assertEquals(200, $response->getStatusCode());
         self::assertEquals($fakeResponseBody, (string)$response->getBody());
