@@ -36,18 +36,10 @@ use const JSON_THROW_ON_ERROR;
 /**
  * A wrapper for the OpenAI API.
  *
- * @property string $apiKey
- * @property string $organization
- * @property string $origin
- *
- * @method ResponseInterface cancelFineTune(string $id)
  * @method ResponseInterface cancelFineTuning(string $id)
  * @method ResponseInterface createChatCompletion(array $options = [])
- * @method ResponseInterface createCompletion(array $options = [])
- * @method ResponseInterface createEdit(array $options = [])
  * @method ResponseInterface createEmbedding(array $options = [])
  * @method ResponseInterface createFile(array $options = [])
- * @method ResponseInterface createFineTune(array $options = [])
  * @method ResponseInterface createFineTuningJob(array $options = [])
  * @method ResponseInterface createImage(array $options = [])
  * @method ResponseInterface createImageEdit(array $options = [])
@@ -60,13 +52,10 @@ use const JSON_THROW_ON_ERROR;
  * @method ResponseInterface deleteModel(string $id)
  * @method ResponseInterface downloadFile(string $id)
  * @method ResponseInterface listFiles()
- * @method ResponseInterface listFineTuneEvents(string $id, array $options = [])
  * @method ResponseInterface listFineTuningEvents(string $id, array $options = [])
- * @method ResponseInterface listFineTunes()
  * @method ResponseInterface listFineTuningJobs()
  * @method ResponseInterface listModels()
  * @method ResponseInterface retrieveFile(string $id)
- * @method ResponseInterface retrieveFineTune(string $id)
  * @method ResponseInterface retrieveFineTuningJob(string $id)
  * @method ResponseInterface retrieveModel(string $id)
  */
@@ -107,6 +96,11 @@ class OpenAI
      */
     public string $origin = '';
 
+    /**
+     * OpenAI API Version (defaults to v1)
+     */
+    public ?string $apiVersion = '';
+
     public function __construct(
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface $streamFactory,
@@ -115,7 +109,8 @@ class OpenAI
         #[SensitiveParameter]
         string $apiKey,
         string $organization = '',
-        string $origin = ''
+        string $origin = '',
+        ?string $apiVersion = null
     ) {
         $this->requestFactory = $requestFactory;
         $this->streamFactory = $streamFactory;
@@ -124,6 +119,7 @@ class OpenAI
         $this->apiKey = $apiKey;
         $this->organization = $organization;
         $this->origin = $origin;
+        $this->apiVersion = $apiVersion;
     }
 
     /**
@@ -190,7 +186,7 @@ class OpenAI
     private function callAPI(string $method, string $key, ?string $parameter = null, array $opts = []): ResponseInterface
     {
         return $this->sendRequest(
-            OpenAIURLBuilder::createUrl($this->uriFactory, $key, $parameter, $this->origin),
+            OpenAIURLBuilder::createUrl($this->uriFactory, $key, $parameter, $this->origin, $this->apiVersion),
             $method,
             $opts
         );

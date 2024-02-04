@@ -20,5 +20,6 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the createFineTuningJob method with options.
 OpenAIFactory::request('createFineTuningJob', [
-    'training_file' => 'file-XGinujblHPwGLSztz8cPS8XY',
+    'training_file' => 'file-...',
+    'model' => 'gpt-3.5-turbo',
 ]);

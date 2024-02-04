@@ -66,6 +66,11 @@ class OpenAITest extends TestCase
     private string $origin = 'example.com';
 
     /**
+     * API version.
+     */
+    private ?string $apiVersion = '';
+
+    /**
      * Sets up the test environment by creating an OpenAI instance and
      * a mocked HTTP client, then assigning the mocked client to the OpenAI instance.
      *
@@ -85,7 +90,8 @@ class OpenAITest extends TestCase
             $this->mockedClient,
             $this->apiKey,
             $this->organization,
-            $this->origin
+            $this->origin,
+            $this->apiVersion
         );
     }
 
@@ -97,27 +103,6 @@ class OpenAITest extends TestCase
         $this->testApiCall(
             fn() => $this->openAI->__call('retrieveModel', ['gpt-3.5-turbo-instruct']),
             'listModels.json'
-        );
-    }
-
-    /**
-     * Test that OpenAI::completion method can handle API calls correctly.
-     */
-    public function testCreateCompletion(): void
-    {
-        $this->testApiCall(
-            fn() => $this->openAI->createCompletion([
-                'model' => 'gpt-3.5-turbo-instruct',
-                'prompt' => 'Say this is a test',
-                'max_tokens' => 7,
-                'temperature' => 0,
-                'top_p' => 1,
-                'n' => 1,
-                'stream' => false,
-                'logprobs' => null,
-                'stop' => "\n",
-            ]),
-            'completion.json'
         );
     }
 
@@ -230,7 +215,7 @@ class OpenAITest extends TestCase
         $response = null;
 
         try {
-            $response = $this->openAI->createCompletion([
+            $response = $this->openAI->createChatCompletion([
                 'model' => 'text-davinci-002',
                 'prompt' => 'Say this is a test',
                 'max_tokens' => 7,
@@ -258,7 +243,7 @@ class OpenAITest extends TestCase
         $this->expectException(OpenAIException::class);
 
         try {
-            $this->openAI->retrieveModel('text-davinci-003');
+            $this->openAI->retrieveModel('gpt-3.5-turbo-instruct');
         } catch (Exception $e) {
             throw $e;
         }
@@ -302,12 +287,12 @@ class OpenAITest extends TestCase
      * and checks if the status code and the response body match the expected values.
      *
      * @param callable $apiCall The API call to test, wrapped in a callable function.
-     * @param string $responseFile The path to the file containing the expected response.
+     * @param string|null $responseFile The path to the file containing the expected response.
      */
-    private function testApiCall(callable $apiCall, string $responseFile): void
+    private function testApiCall(callable $apiCall, ?string $responseFile): void
     {
         $response = null;
-        $fakeResponseBody = TestHelper::loadResponseFromFile($responseFile);
+        $fakeResponseBody = $responseFile ? TestHelper::loadResponseFromFile($responseFile) : '';
         $fakeResponse = new Response(200, [], $fakeResponseBody);
 
         $this->sendRequestMock(static function () use ($fakeResponse) {
@@ -323,6 +308,7 @@ class OpenAITest extends TestCase
         self::assertEquals($this->apiKey, $this->openAI->apiKey);
         self::assertEquals($this->organization, $this->openAI->organization);
         self::assertEquals($this->origin, $this->openAI->origin);
+        self::assertEquals($this->apiVersion, $this->openAI->apiVersion);
         self::assertEquals(200, $response->getStatusCode());
         self::assertEquals($fakeResponseBody, (string)$response->getBody());
     }

@@ -76,18 +76,12 @@ For more details on how to use each endpoint, refer to the [OpenAI API documenta
     -   `listModels()`
 -   [Retrieve Model](https://platform.openai.com/docs/api-reference/models/retrieve) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/models/retrieveModel.php)
     -   `retrieveModel(string $id)`
-
-### Completions
--   [Create Completion](https://platform.openai.com/docs/api-reference/completions/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/completions/createCompletion.php)
-    -   `createCompletion(array $options = [])`
+-   [Delete Model](https://platform.openai.com/docs/api-reference/models/delete) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/models/deleteModel.php)
+    -   `deleteModel(string $id)`
 
 ### Chat Completions
 -   [Create Chat Completion](https://platform.openai.com/docs/api-reference/chat/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/chat/createChatCompletion.php)
     -   `createChatCompletion(array $options = [])`
-
-### Edits
--   [Create Edit](https://platform.openai.com/docs/api-reference/edits/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/edits/createEdit.php)
-    -   `createEdit(array $options = [])`
 
 ### Images
 -   [Create Image](https://platform.openai.com/docs/api-reference/images/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/images/createImage.php)
@@ -132,20 +126,6 @@ For more details on how to use each endpoint, refer to the [OpenAI API documenta
     -   `cancelFineTuning(string $id)`
 -   [List Fine-tuning Events](https://platform.openai.com/docs/api-reference/fine-tuning/list-events) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tuning/listFineTuningEvents.php)
     -   `listFineTuningEvents(string $id, array $options = [])`
-
-### Fine-tunes (Deprecated)
--   [Create Fine-tune](https://platform.openai.com/docs/api-reference/fine-tunes/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/createFineTune.php)
-    -   `createFineTune(array $options = [])`
--   [List Fine-tunes](https://platform.openai.com/docs/api-reference/fine-tunes/list) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/listFineTunes.php)
-    -   `listFineTunes()`
--   [Retrieve Fine-tune](https://platform.openai.com/docs/api-reference/fine-tunes/retrieve) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/retrieveFineTune.php)
-    -   `retrieveFineTune(string $id)`
--   [Cancel Fine-tune](https://platform.openai.com/docs/api-reference/fine-tunes/cancel) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/cancelFineTune.php)
-    -   `cancelFineTune(string $id)`
--   [List Fine-tune Events](https://platform.openai.com/docs/api-reference/fine-tunes/events) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/listFineTuneEvents.php)
-    -   `listFineTuneEvents(string $id, array $options = [])`
--   [Delete fine-tune model](https://platform.openai.com/docs/api-reference/fine-tunes/delete-model) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/fine-tunes/deleteModel.php)
-    -   `deleteModel(string $id)`
 
 ### Moderations
 -   [Create moderation](https://platform.openai.com/docs/api-reference/moderations/create) - [Example](https://github.com/SoftCreatR/php-openai-sdk/blob/main/examples/moderations/createModeration.php)

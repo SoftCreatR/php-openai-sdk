@@ -3,20 +3,20 @@
     {
       "id": "model-id-0",
       "object": "model",
-      "owned_by": "organization-owner",
-      "permission": []
+      "created": 1686935002,
+      "owned_by": "organization-owner"
     },
     {
       "id": "model-id-1",
       "object": "model",
+      "created": 1686935002,
       "owned_by": "organization-owner",
-      "permission": []
     },
     {
       "id": "model-id-2",
       "object": "model",
-      "owned_by": "openai",
-      "permission": []
+      "created": 1686935002,
+      "owned_by": "openai"
     }
   ],
   "object": "list"

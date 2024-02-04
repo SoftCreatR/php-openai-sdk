@@ -31,7 +31,7 @@ class OpenAIFactory
     private const ORGANIZATION_ID = '';
 
     public static function create(
-        #[\SensitiveParameter]
+        #[SensitiveParameter]
         string $apiKey = self::API_KEY,
         ?string $organization = self::ORGANIZATION_ID
     ): OpenAI {

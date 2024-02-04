@@ -19,4 +19,4 @@
 require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the retrieveModel method with id.
-OpenAIFactory::request('retrieveModel', 'text-davinci-002');
+OpenAIFactory::request('retrieveModel', 'gpt-3.5-turbo-instruct');

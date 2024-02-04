@@ -20,6 +20,7 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the createEmbedding method with options.
 OpenAIFactory::request('createEmbedding', [
-    'model' => 'text-embedding-ada-002',
     'input' => 'The food was delicious and the waiter...',
+    'model' => 'text-embedding-ada-002',
+    'encoding_format' => 'float',
 ]);

@@ -41,38 +41,16 @@ final class OpenAIURLBuilder
      * @var array<string, array<string, string>> OpenAI API endpoints configuration.
      */
     private static array $urlEndpoints = [
-        // Models: https://platform.openai.com/docs/api-reference/models
-        'listModels' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models'],
-        'retrieveModel' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models/%s'],
-
-        // Completions: https://platform.openai.com/docs/api-reference/completions
-        'createCompletion' => ['method' => self::HTTP_METHOD_POST, 'path' => '/completions'],
-
-        // Chat Completions: https://platform.openai.com/docs/api-reference/chat
-        'createChatCompletion' => ['method' => self::HTTP_METHOD_POST, 'path' => '/chat/completions'],
-
-        // Edits: https://platform.openai.com/docs/api-reference/edits
-        'createEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/edits'],
-
-        // Images: https://platform.openai.com/docs/api-reference/images
-        'createImage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/generations'],
-        'createImageEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/edits'],
-        'createImageVariation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/variations'],
-
-        // Embeddings: https://platform.openai.com/docs/api-reference/embeddings
-        'createEmbedding' => ['method' => self::HTTP_METHOD_POST, 'path' => '/embeddings'],
-
         // Audio: https://platform.openai.com/docs/api-reference/audio
         'createSpeech' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/speech'],
         'createTranscription' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/transcriptions'],
         'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations'],
 
-        // Files: https://platform.openai.com/docs/api-reference/files
-        'listFiles' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files'],
-        'createFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/files'],
-        'deleteFile' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/files/%s'],
-        'retrieveFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s'],
-        'downloadFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s/content'],
+        // Chat Completions: https://platform.openai.com/docs/api-reference/chat
+        'createChatCompletion' => ['method' => self::HTTP_METHOD_POST, 'path' => '/chat/completions'],
+
+        // Embeddings: https://platform.openai.com/docs/api-reference/embeddings
+        'createEmbedding' => ['method' => self::HTTP_METHOD_POST, 'path' => '/embeddings'],
 
         // Fine-tuning: https://platform.openai.com/docs/api-reference/fine-tuning
         'createFineTuningJob' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/jobs'],
@@ -81,12 +59,21 @@ final class OpenAIURLBuilder
         'cancelFineTuning' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/jobs/%s/cancel'],
         'listFineTuningEvents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs/%s/events'],
 
-        // [Deprecated] Fine-tunes: https://platform.openai.com/docs/api-reference/fine-tunes
-        'createFineTune' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine-tunes'],
-        'listFineTunes' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine-tunes'],
-        'retrieveFineTune' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine-tunes/%s'],
-        'cancelFineTune' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine-tunes/%s/cancel'],
-        'listFineTuneEvents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine-tunes/%s/events'],
+        // Files: https://platform.openai.com/docs/api-reference/files
+        'listFiles' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files'],
+        'createFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/files'],
+        'deleteFile' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/files/%s'],
+        'retrieveFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s'],
+        'downloadFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s/content'],
+
+        // Images: https://platform.openai.com/docs/api-reference/images
+        'createImage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/generations'],
+        'createImageEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/edits'],
+        'createImageVariation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/variations'],
+
+        // Models: https://platform.openai.com/docs/api-reference/models
+        'listModels' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models'],
+        'retrieveModel' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models/%s'],
         'deleteModel' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/models/%s'],
 
         // Moderations: https://platform.openai.com/docs/api-reference/moderations
@@ -127,7 +114,8 @@ final class OpenAIURLBuilder
         UriFactoryInterface $uriFactory,
         string $key,
         ?string $parameter = null,
-        string $origin = ''
+        string $origin = '',
+        ?string $apiVersion = null
     ): UriInterface {
         $endpoint = self::getEndpoint($key);
         $path = self::replacePathParameters($endpoint['path'], $parameter);
@@ -136,7 +124,7 @@ final class OpenAIURLBuilder
             ->createUri()
             ->withScheme('https')
             ->withHost($origin ?: self::ORIGIN)
-            ->withPath(self::API_VERSION . $path);
+            ->withPath(($apiVersion ?? self::API_VERSION) . $path);
     }
 
     /**
