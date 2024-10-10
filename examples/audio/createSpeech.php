@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,10 +19,16 @@
 require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the createSpeech method with options. Save response to file.
-$response = OpenAIFactory::request('createSpeech', [
-    'model' => 'tts-1',
-    'input' => 'The quick brown fox jumped over the lazy dog.',
-    'voice' => 'alloy',
-], true);
+$response = OpenAIFactory::request(
+    'createSpeech',
+    [],
+    [
+        'model' => 'tts-1',
+        'input' => 'The quick brown fox jumped over the lazy dog.',
+        'voice' => 'alloy',
+    ],
+    null,
+    true
+);
 
 \file_put_contents(__DIR__ . '/fixtures/speech.mp3', $response);

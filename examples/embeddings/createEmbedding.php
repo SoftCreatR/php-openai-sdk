@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,8 +19,11 @@
 require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the createEmbedding method with options.
-OpenAIFactory::request('createEmbedding', [
-    'input' => 'The food was delicious and the waiter...',
-    'model' => 'text-embedding-ada-002',
-    'encoding_format' => 'float',
-]);
+OpenAIFactory::request(
+    'createEmbedding',
+    [
+        'input' => 'The food was delicious and the waiter...',
+        'model' => 'text-embedding-ada-002',
+        'encoding_format' => 'float',
+    ]
+);

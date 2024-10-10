@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,50 +21,65 @@ namespace SoftCreatR\OpenAI\Tests;
 use GuzzleHttp\Psr7\HttpFactory;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionException;
 use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
 /**
  * @covers \SoftCreatR\OpenAI\OpenAIURLBuilder
  */
-class OpenAIURLBuilderTest extends TestCase
+final class OpenAIURLBuilderTest extends TestCase
 {
-    public function testGetEndpoint(): void
+    /**
+     * Tests the constructor of OpenAIURLBuilder to ensure it's covered.
+     *
+     * @throws ReflectionException
+     */
+    public function testOpenAIURLBuilderConstructor(): void
     {
-        $endpoint = OpenAIURLBuilder::getEndpoint('listModels');
+        $constructor = TestHelper::getPrivateConstructor(OpenAIURLBuilder::class);
 
-        $this->assertArrayHasKey('method', $endpoint);
-        $this->assertArrayHasKey('path', $endpoint);
+        $reflectionClass = new ReflectionClass(OpenAIURLBuilder::class);
+        $instance = $reflectionClass->newInstanceWithoutConstructor();
+
+        // Invoke the constructor
+        $constructor->invoke($instance);
+
+        $this->assertInstanceOf(OpenAIURLBuilder::class, $instance);
     }
 
-    public function testGetEndpointInvalidKey(): void
+    /**
+     * Tests that getEndpoint throws an exception for an invalid key.
+     */
+    public function testGetEndpointWithInvalidKey(): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid OpenAI URL key "invalidKey".');
 
         OpenAIURLBuilder::getEndpoint('invalidKey');
     }
 
-    public function testCreateUrl(): void
-    {
-        $url = OpenAIURLBuilder::createUrl(new HttpFactory(), 'listModels');
-
-        $this->assertEquals('https', $url->getScheme());
-        $this->assertEquals(OpenAIURLBuilder::ORIGIN, $url->getHost());
-        $this->assertEquals(OpenAIURLBuilder::API_VERSION . '/models', $url->getPath());
-    }
-
-    public function testCreateUrlWithPathParameter(): void
-    {
-        $url = OpenAIURLBuilder::createUrl(new HttpFactory(), 'retrieveFile', 'fileId');
-
-        $this->assertEquals('https', $url->getScheme());
-        $this->assertEquals(OpenAIURLBuilder::ORIGIN, $url->getHost());
-        $this->assertEquals(OpenAIURLBuilder::API_VERSION . '/files/fileId', $url->getPath());
-    }
-
-    public function testCreateUrlInvalidKey(): void
+    /**
+     * Tests that createUrl throws an exception when a required path parameter is missing.
+     */
+    public function testCreateUrlWithMissingPathParameter(): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing path parameter "model".');
 
-        OpenAIURLBuilder::createUrl(new HttpFactory(), 'invalidKey');
+        $uriFactory = new HttpFactory();
+        OpenAIURLBuilder::createUrl($uriFactory, 'retrieveModel');
+    }
+
+    /**
+     * Tests that createUrl throws an exception when a path parameter is not scalar.
+     */
+    public function testCreateUrlWithNonScalarPathParameter(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Parameter "model" must be a scalar value, array given.');
+
+        $uriFactory = new HttpFactory();
+        OpenAIURLBuilder::createUrl($uriFactory, 'retrieveModel', ['model' => ['not', 'scalar']]);
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,76 +23,191 @@ use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 
 /**
- * Creates URLs for OpenAI API endpoints.
+ * Utility class for creating URLs for OpenAI API endpoints.
  */
-final class OpenAIURLBuilder
+class OpenAIURLBuilder
 {
     public const ORIGIN = 'api.openai.com';
 
-    public const API_VERSION = 'v1';
-
-    private const HTTP_METHOD_GET = 'GET';
+    public const BASE_PATH = '/v1';
 
     private const HTTP_METHOD_POST = 'POST';
+
+    private const HTTP_METHOD_GET = 'GET';
 
     private const HTTP_METHOD_DELETE = 'DELETE';
 
     /**
-     * @var array<string, array<string, string>> OpenAI API endpoints configuration.
+     * Configuration of OpenAI API endpoints.
+     *
+     * @var array<string, array{method: string, path: string}>
      */
     private static array $urlEndpoints = [
-        // Audio: https://platform.openai.com/docs/api-reference/audio
+        // Audio
         'createSpeech' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/speech'],
         'createTranscription' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/transcriptions'],
         'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations'],
 
-        // Chat Completions: https://platform.openai.com/docs/api-reference/chat
+        // Chat Completion
         'createChatCompletion' => ['method' => self::HTTP_METHOD_POST, 'path' => '/chat/completions'],
 
-        // Embeddings: https://platform.openai.com/docs/api-reference/embeddings
+        // Embeddings
         'createEmbedding' => ['method' => self::HTTP_METHOD_POST, 'path' => '/embeddings'],
 
-        // Fine-tuning: https://platform.openai.com/docs/api-reference/fine-tuning
+        // Fine-Tuning Jobs
         'createFineTuningJob' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/jobs'],
         'listFineTuningJobs' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs'],
-        'retrieveFineTuningJob' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs/%s'],
-        'cancelFineTuning' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/jobs/%s/cancel'],
-        'listFineTuningEvents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs/%s/events'],
+        'listFineTuningEvents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs/{fine_tuning_job_id}/events'],
+        'listFineTuningCheckpoints' => ['method' => self::HTTP_METHOD_GET,  'path' => '/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints'],
+        'retrieveFineTuningJob' => ['method' => self::HTTP_METHOD_GET, 'path' => '/fine_tuning/jobs/{fine_tuning_job_id}'],
+        'cancelFineTuning' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/jobs/{fine_tuning_job_id}/cancel'],
 
-        // Files: https://platform.openai.com/docs/api-reference/files
+        // Batches
+        'createBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/batches'],
+        'retrieveBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/batches/{batch_id}'],
+        'cancelBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/batches/{batch_id}/cancel'],
+        'listBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/batches'],
+
+        // Files
+        'uploadFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/files'],
         'listFiles' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files'],
-        'createFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/files'],
-        'deleteFile' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/files/%s'],
-        'retrieveFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s'],
-        'downloadFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/%s/content'],
+        'retrieveFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/{file_id}'],
+        'deleteFile' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/files/{file_id}'],
+        'retrieveFileContent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/files/{file_id}/content'],
 
-        // Images: https://platform.openai.com/docs/api-reference/images
+        // Uploads
+        'createUpload' => ['method' => self::HTTP_METHOD_POST, 'path' => '/uploads'],
+        'addUploadPart' => ['method' => self::HTTP_METHOD_POST, 'path' => '/uploads/{upload_id}/parts'],
+        'completeUpload' => ['method' => self::HTTP_METHOD_POST, 'path' => '/uploads/{upload_id}/complete'],
+        'cancelUpload' => ['method' => self::HTTP_METHOD_POST, 'path' => '/uploads/{upload_id}/cancel'],
+
+        // Images
         'createImage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/generations'],
         'createImageEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/edits'],
         'createImageVariation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/variations'],
 
-        // Models: https://platform.openai.com/docs/api-reference/models
+        // Models
         'listModels' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models'],
-        'retrieveModel' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models/%s'],
-        'deleteModel' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/models/%s'],
+        'retrieveModel' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models/{model}'],
+        'deleteModel' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/models/{model}'],
 
-        // Moderations: https://platform.openai.com/docs/api-reference/moderations
+        // Moderations
         'createModeration' => ['method' => self::HTTP_METHOD_POST, 'path' => '/moderations'],
+
+        // Assistants
+        'createAssistant' => ['method' => self::HTTP_METHOD_POST, 'path' => '/assistants'],
+        'listAssistants' => ['method' => self::HTTP_METHOD_GET, 'path' => '/assistants'],
+        'retrieveAssistant' => ['method' => self::HTTP_METHOD_GET, 'path' => '/assistants/{assistant_id}'],
+        'modifyAssistant' => ['method' => self::HTTP_METHOD_POST, 'path' => '/assistants/{assistant_id}'],
+        'deleteAssistant' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/assistants/{assistant_id}'],
+
+        // Threads
+        'createThread' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads'],
+        'retrieveThread' => ['method' => self::HTTP_METHOD_GET, 'path' => '/threads/{thread_id}'],
+        'modifyThread' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/{thread_id}'],
+        'deleteThread' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/threads/{thread_id}'],
+
+        // Messages
+        'createMessage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/{thread_id}/messages'],
+        'listMessages' => ['method' => self::HTTP_METHOD_GET, 'path' => '/threads/{thread_id}/messages'],
+        'retrieveMessage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/threads/{thread_id}/messages/{message_id}'],
+        'modifyMessage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/{thread_id}/messages/{message_id}'],
+        'deleteMessage' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/threads/{thread_id}/messages/{message_id}'],
+
+        // Runs
+        'createRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/{thread_id}/runs'],
+        'createThreadAndRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/runs'],
+        'listRuns' => ['method' => self::HTTP_METHOD_GET, 'path' => '/threads/{thread_id}/runs'],
+        'retrieveRun' => ['method' => self::HTTP_METHOD_GET, 'path' => '/threads/{thread_id}/runs/{run_id}'],
+        'modifyRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/{thread_id}/runs/{run_id}'],
+        'submitToolOutputsToRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/{thread_id}/runs/{run_id}/submit_tool_outputs'],
+        'cancelRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/threads/{thread_id}/runs/{run_id}/cancel'],
+
+        // Run Steps
+        'listRunSteps' => ['method' => self::HTTP_METHOD_GET, 'path' => '/threads/{thread_id}/runs/{run_id}/steps'],
+        'retrieveRunStep' => ['method' => self::HTTP_METHOD_GET, 'path' => '/threads/{thread_id}/runs/{run_id}/steps/{step_id}'],
+
+        // Vector Stores
+        'createVectorStore' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores'],
+        'listVectorStores' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores'],
+        'retrieveVectorStore' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}'],
+        'modifyVectorStore' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}'],
+        'deleteVectorStore' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/vector_stores/{vector_store_id}'],
+
+        // Vector Store Files
+        'createVectorStoreFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/files'],
+        'listVectorStoreFiles' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/files'],
+        'retrieveVectorStoreFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/files/{file_id}'],
+        'deleteVectorStoreFile' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/vector_stores/{vector_store_id}/files/{file_id}'],
+
+        // Vector Store File Batches
+        'createVectorStoreFileBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/file_batches'],
+        'retrieveVectorStoreFileBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}'],
+        'cancelVectorStoreFileBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel'],
+        'listVectorStoreFilesInBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}/files'],
+
+        // Organization Invites
+        'listInvites' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/invites'],
+        'createInvite' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/invites'],
+        'retrieveInvite' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/invites/{invite_id}'],
+        'deleteInvite' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/invites/{invite_id}'],
+
+        // Organization Users
+        'listUsers' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/users'],
+        'modifyUser' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/users/{user_id}'],
+        'retrieveUser' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/users/{user_id}'],
+        'deleteUser' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/users/{user_id}'],
+
+        // Organization Projects
+        'listProjects' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects'],
+        'createProject' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects'],
+        'retrieveProject' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}'],
+        'modifyProject' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}'],
+        'archiveProject' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/archive'],
+
+        // Project Users
+        'listProjectUsers' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/users'],
+        'createProjectUser' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/users'],
+        'retrieveProjectUser' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/users/{user_id}'],
+        'modifyProjectUser' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/users/{user_id}'],
+        'deleteProjectUser' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/users/{user_id}'],
+
+        // Project Service Accounts
+        'listProjectServiceAccounts' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/service_accounts'],
+        'createProjectServiceAccount' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/service_accounts'],
+        'retrieveProjectServiceAccount' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/service_accounts/{service_account_id}'],
+        'deleteProjectServiceAccount' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/service_accounts/{service_account_id}'],
+
+        // Project API Keys
+        'listProjectApiKeys' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/api_keys'],
+        'retrieveProjectApiKey' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/api_keys/{key_id}'],
+        'deleteProjectApiKey' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/api_keys/{key_id}'],
+
+        // Audit Logs
+        'listAuditLogs' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/audit_logs'],
     ];
+
+    /**
+     * Prevents instantiation of this class.
+     */
+    protected function __construct()
+    {
+        // This class should not be instantiated.
+    }
 
     /**
      * Gets the OpenAI API endpoint configuration.
      *
      * @param string $key The endpoint key.
      *
-     * @return array<string, string> The endpoint configuration.
+     * @return array{method: string, path: string} The endpoint configuration.
      *
      * @throws InvalidArgumentException If the provided key is invalid.
      */
     public static function getEndpoint(string $key): array
     {
         if (!isset(self::$urlEndpoints[$key])) {
-            throw new InvalidArgumentException('Invalid OpenAI URL key "' . $key . '".');
+            throw new InvalidArgumentException(\sprintf('Invalid OpenAI URL key "%s".', $key));
         }
 
         return self::$urlEndpoints[$key];
@@ -101,46 +216,63 @@ final class OpenAIURLBuilder
     /**
      * Creates a URL for the specified OpenAI API endpoint.
      *
-     * @param UriFactoryInterface $uriFactory The PSR-17 URI factory instance used for creating URIs.
-     * @param string $key The key representing the API endpoint.
-     * @param string|null $parameter Optional parameter to replace in the endpoint path.
-     * @param string $origin Custom origin (Hostname), if needed.
+     * @param UriFactoryInterface  $uriFactory The PSR-17 URI factory instance used for creating URIs.
+     * @param string               $key        The key representing the API endpoint.
+     * @param array<string, mixed> $parameters Optional parameters to replace in the endpoint path.
+     * @param string               $origin     Custom origin (hostname), if needed.
+     * @param string               $basePath   Custom base path, if needed.
      *
      * @return UriInterface The fully constructed URL for the API endpoint.
      *
-     * @throws InvalidArgumentException If the provided key is invalid.
+     * @throws InvalidArgumentException If a required path parameter is missing or invalid.
      */
     public static function createUrl(
         UriFactoryInterface $uriFactory,
         string $key,
-        ?string $parameter = null,
+        array $parameters = [],
         string $origin = '',
-        ?string $apiVersion = null
+        string $basePath = ''
     ): UriInterface {
         $endpoint = self::getEndpoint($key);
-        $path = self::replacePathParameters($endpoint['path'], $parameter);
+        $path = self::replacePathParameters($endpoint['path'], $parameters);
 
         return $uriFactory
             ->createUri()
             ->withScheme('https')
-            ->withHost($origin ?: self::ORIGIN)
-            ->withPath(($apiVersion ?? self::API_VERSION) . $path);
+            ->withHost($origin !== '' ? $origin : self::ORIGIN)
+            ->withPath(\trim($basePath !== '' ? $basePath : self::BASE_PATH, '/') . $path);
     }
 
     /**
-     * Replaces path parameters in the given path with provided parameter value.
+     * Replaces path parameters in the given path with provided parameter values.
      *
-     * @param string $path The path containing the parameter placeholder.
-     * @param string|null $parameter The parameter value to replace the placeholder with.
+     * @param string              $path       The path containing parameter placeholders.
+     * @param array<string, mixed> $parameters The parameter values to replace placeholders in the path.
      *
-     * @return string The path with replaced parameter value.
+     * @return string The path with replaced parameter values.
+     *
+     * @throws InvalidArgumentException If a required path parameter is missing or invalid.
      */
-    private static function replacePathParameters(string $path, ?string $parameter = null): string
+    private static function replacePathParameters(string $path, array $parameters): string
     {
-        if ($parameter !== null) {
-            return \sprintf($path, $parameter);
-        }
+        return \preg_replace_callback('/\{(\w+)}/', static function ($matches) use ($parameters) {
+            $key = $matches[1];
 
-        return $path;
+            if (!\array_key_exists($key, $parameters)) {
+                throw new InvalidArgumentException(\sprintf('Missing path parameter "%s".', $key));
+            }
+
+            $value = $parameters[$key];
+
+            if (!\is_scalar($value)) {
+                throw new InvalidArgumentException(\sprintf(
+                    'Parameter "%s" must be a scalar value, %s given.',
+                    $key,
+                    \gettype($value)
+                ));
+            }
+
+            return (string)$value;
+        }, $path);
     }
 }

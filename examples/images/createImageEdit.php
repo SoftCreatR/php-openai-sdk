@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,10 +19,13 @@
 require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the createImageEdit method with options.
-OpenAIFactory::request('createImageEdit', [
-    'image' => __DIR__ . '/fixtures/otter.png',
-    'mask' => __DIR__ . '/fixtures/mask.png',
-    'prompt' => 'A cute baby sea otter wearing a beret',
-    'n' => 2,
-    'size' => '256x256',
-]);
+OpenAIFactory::request(
+    'createImageEdit',
+    [
+        'image' => __DIR__ . '/fixtures/otter.png',
+        'mask' => __DIR__ . '/fixtures/mask.png',
+        'prompt' => 'A cute baby sea otter wearing a beret',
+        'n' => 2,
+        'size' => '256x256',
+    ]
+);

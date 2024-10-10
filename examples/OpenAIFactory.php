@@ -1,75 +1,178 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * [License Information]
  */
+
+declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
 use SoftCreatR\OpenAI\OpenAI;
+use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
-class OpenAIFactory
+/**
+ * Example factory class for creating and using the OpenAI client.
+ */
+final class OpenAIFactory
 {
-    // Replace 'your_api_key' with your actual OpenAI API key
-    private const API_KEY = 'your_api_key';
+    /**
+     * OpenAI API Key.
+     *
+     * @see https://platform.openai.com/docs/api-reference/authentication
+     * @var string
+     */
+    private const OPENAI_API_KEY = 'your_api_key';
 
-    // Optionally, set your organization ID here
+    /**
+     * OpenAI Admin API Key.
+     *
+     * @see https://platform.openai.com/docs/api-reference/administration
+     * @var string
+     */
+    private const OPENAI_ADMIN_KEY = 'your_admin_api_key';
+
+    /**
+     * OpenAI Organization ID (optional).
+     *
+     * @var string
+     */
     private const ORGANIZATION_ID = '';
 
-    public static function create(
-        #[SensitiveParameter]
-        string $apiKey = self::API_KEY,
-        ?string $organization = self::ORGANIZATION_ID
-    ): OpenAI {
-        $psr17Factory = new HttpFactory();
-        $httpClient = new Client();
-
-        return new OpenAI($psr17Factory, $psr17Factory, $psr17Factory, $httpClient, $apiKey, $organization);
+    /**
+     * Prevents instantiation of this class.
+     */
+    private function __construct()
+    {
+        // This class should not be instantiated.
     }
 
-    public static function request(string $method, $args = [], $returnResponse = false)
-    {
-        // Instantiate the OpenAI class using the factory
-        $openAI = self::create();
+    /**
+     * Creates an instance of the OpenAI client.
+     *
+     * @param string $apiKey The OpenAI API key.
+     *
+     * @return OpenAI The OpenAI client instance.
+     */
+    public static function create(
+        #[SensitiveParameter]
+        string $apiKey = self::OPENAI_API_KEY,
+        string $organizationID = self::ORGANIZATION_ID
+    ): OpenAI {
+        $psr17Factory = new HttpFactory();
+        $httpClient = new Client(['stream' => true]);
 
-        // Execute request
+        return new OpenAI(
+            requestFactory: $psr17Factory,
+            streamFactory: $psr17Factory,
+            uriFactory: $psr17Factory,
+            httpClient: $httpClient,
+            apiKey: $apiKey,
+            organization: $organizationID
+        );
+    }
+
+    /**
+     * Sends a request to the specified OpenAI API endpoint.
+     *
+     * @param string         $method         The name of the API method to call.
+     * @param array          $parameters     An associative array of parameters (URL parameters).
+     * @param array          $options        An associative array of options (body or query parameters).
+     * @param callable|null  $streamCallback Optional callback function for streaming responses.
+     * @param bool           $returnResponse Whether to return the response or not.
+     * @param bool           $useAdminKey    Whether to use the OPENAI_ADMIN_KEY.
+     *
+     * @return mixed
+     */
+    public static function request(
+        string $method,
+        array $parameters = [],
+        array $options = [],
+        ?callable $streamCallback = null,
+        bool $returnResponse = false,
+        bool $useAdminKey = false
+    ): mixed {
+        $openAI = self::create($useAdminKey ? self::OPENAI_ADMIN_KEY : self::OPENAI_API_KEY);
+
         try {
-            // Call the specified method
-            $response = $openAI->{$method}($args);
+            $endpoint = OpenAIURLBuilder::getEndpoint($method);
+            $path = $endpoint['path'];
 
-            if ($returnResponse) {
-                return $response->getBody()->getContents();
+            // Determine if the path contains placeholders
+            $hasPlaceholders = \preg_match('/\{(\w+)}/', $path) === 1;
+
+            if ($hasPlaceholders) {
+                $urlParameters = $parameters;
+                $bodyOptions = $options;
+            } else {
+                $urlParameters = [];
+                $bodyOptions = $parameters + $options; // Merge parameters and options
             }
 
-            // Decode the response body
-            $result = \json_decode(
-                $response->getBody()->getContents(),
-                true,
-                512,
-                \JSON_THROW_ON_ERROR
-            );
+            if ($streamCallback !== null) {
+                $openAI->{$method}($urlParameters, $bodyOptions, $streamCallback);
+            } else {
+                $response = $openAI->{$method}($urlParameters, $bodyOptions);
 
-            // Print the result information as a JSON string
-            echo "============\n| Response |\n============\n\n";
-            echo \json_encode($result, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
-            echo "\n\n============\n";
+                if ($returnResponse) {
+                    return $response->getBody()->getContents();
+                }
+
+                $contentType = $response->getHeaderLine('Content-Type');
+
+                if (\str_contains($contentType, 'application/json')) {
+                    $result = \json_decode(
+                        $response->getBody()->getContents(),
+                        true,
+                        512,
+                        \JSON_THROW_ON_ERROR
+                    );
+
+                    echo "============\n| Response |\n============\n\n";
+                    echo \json_encode($result, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
+                    echo "\n\n============\n";
+                } else {
+                    // Handle other content types if necessary
+                    echo "Received response with Content-Type: {$contentType}\n";
+                    echo $response->getBody()->getContents();
+                }
+
+                return null;
+            }
         } catch (Exception $e) {
-            // Handle any exceptions during the API call
             echo "Error: {$e->getMessage()}\n";
         }
+
+        return null;
+    }
+
+    /**
+     * Sends a request to the specified OpenAI API endpoint.
+     *
+     * @param string         $method         The name of the API method to call.
+     * @param array          $parameters     An associative array of parameters (URL parameters).
+     * @param array          $options        An associative array of options (body or query parameters).
+     * @param callable|null  $streamCallback Optional callback function for streaming responses.
+     * @param bool           $returnResponse Whether to return the response or not.
+     *
+     * @return mixed
+     */
+    public static function adminRequest(
+        string $method,
+        array $parameters = [],
+        array $options = [],
+        ?callable $streamCallback = null,
+        bool $returnResponse = false
+    ): mixed {
+        return self::request(
+            $method,
+            $parameters,
+            $options,
+            $streamCallback,
+            $returnResponse,
+            true
+        );
     }
 }

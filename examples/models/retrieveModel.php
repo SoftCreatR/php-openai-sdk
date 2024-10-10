@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,4 +19,7 @@
 require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the retrieveModel method with id.
-OpenAIFactory::request('retrieveModel', 'gpt-3.5-turbo-instruct');
+OpenAIFactory::request(
+    'retrieveModel',
+    ['model' => 'gpt-3.5-turbo-instruct']
+);

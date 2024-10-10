@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 
 namespace SoftCreatR\OpenAI;
 
-use Exception;
+use InvalidArgumentException;
 use JsonException;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
@@ -28,6 +28,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
+use Random\RandomException;
 use SensitiveParameter;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 
@@ -36,91 +37,124 @@ use const JSON_THROW_ON_ERROR;
 /**
  * A wrapper for the OpenAI API.
  *
- * @method ResponseInterface cancelFineTuning(string $id)
- * @method ResponseInterface createChatCompletion(array $options = [])
- * @method ResponseInterface createEmbedding(array $options = [])
- * @method ResponseInterface createFile(array $options = [])
- * @method ResponseInterface createFineTuningJob(array $options = [])
- * @method ResponseInterface createImage(array $options = [])
- * @method ResponseInterface createImageEdit(array $options = [])
- * @method ResponseInterface createImageVariation(array $options = [])
- * @method ResponseInterface createModeration(array $options = [])
- * @method ResponseInterface createTranscription(array $options = [])
- * @method ResponseInterface createTranslation(array $options = [])
- * @method ResponseInterface createSpeech(array $options = [])
- * @method ResponseInterface deleteFile(string $id)
- * @method ResponseInterface deleteModel(string $id)
- * @method ResponseInterface downloadFile(string $id)
- * @method ResponseInterface listFiles()
- * @method ResponseInterface listFineTuningEvents(string $id, array $options = [])
- * @method ResponseInterface listFineTuningJobs()
- * @method ResponseInterface listModels()
- * @method ResponseInterface retrieveFile(string $id)
- * @method ResponseInterface retrieveFineTuningJob(string $id)
- * @method ResponseInterface retrieveModel(string $id)
+ * @method ResponseInterface|null createSpeech(array $parameters = [], array $options = []) Generates audio from the input text.
+ * @method ResponseInterface|null createTranscription(array $parameters = [], array $options = []) Transcribes audio into the input language.
+ * @method ResponseInterface|null createTranslation(array $parameters = [], array $options = []) Translates audio into English.
+ * @method ResponseInterface|null createChatCompletion(array $options, ?\callable $streamCallback = null) Creates a model response for the given chat conversation.
+ * @method ResponseInterface|null createEmbedding(array $parameters = [], array $options = []) Creates an embedding vector representing the input text.
+ * @method ResponseInterface|null createFineTuningJob(array $parameters = [], array $options = []) Creates a fine-tuning job to create a new model from a given dataset.
+ * @method ResponseInterface|null listFineTuningJobs(array $parameters = [], array $options = []) Lists your organization's fine-tuning jobs.
+ * @method ResponseInterface|null listFineTuningEvents(array $parameters, array $options = []) Gets status updates for a fine-tuning job.
+ * @method ResponseInterface|null listFineTuningCheckpoints(array $parameters, array $options = []) Lists checkpoints for a fine-tuning job.
+ * @method ResponseInterface|null retrieveFineTuningJob(array $parameters, array $options = []) Gets info about a fine-tuning job.
+ * @method ResponseInterface|null cancelFineTuning(array $parameters, array $options = []) Immediately cancels a fine-tuning job.
+ * @method ResponseInterface|null createBatch(array $parameters = [], array $options = []) Creates and executes a batch from an uploaded file of requests.
+ * @method ResponseInterface|null retrieveBatch(array $parameters, array $options = []) Retrieves a batch.
+ * @method ResponseInterface|null cancelBatch(array $parameters, array $options = []) Cancels an in-progress batch.
+ * @method ResponseInterface|null listBatches(array $parameters = [], array $options = []) Lists your organization's batches.
+ * @method ResponseInterface|null uploadFile(array $parameters = [], array $options = []) Uploads a file that can be used across various endpoints.
+ * @method ResponseInterface|null listFiles(array $parameters = [], array $options = []) Returns a list of files that belong to the user's organization.
+ * @method ResponseInterface|null retrieveFile(array $parameters, array $options = []) Returns information about a specific file.
+ * @method ResponseInterface|null deleteFile(array $parameters, array $options = []) Deletes a file.
+ * @method ResponseInterface|null retrieveFileContent(array $parameters, array $options = []) Returns the contents of the specified file.
+ * @method ResponseInterface|null createUpload(array $parameters = [], array $options = []) Creates an intermediate Upload object that you can add Parts to.
+ * @method ResponseInterface|null addUploadPart(array $parameters, array $options = []) Adds a Part to an Upload object.
+ * @method ResponseInterface|null completeUpload(array $parameters, array $options = []) Completes the Upload.
+ * @method ResponseInterface|null cancelUpload(array $parameters, array $options = []) Cancels the Upload.
+ * @method ResponseInterface|null createImage(array $parameters = [], array $options = []) Creates an image given a prompt.
+ * @method ResponseInterface|null createImageEdit(array $parameters = [], array $options = []) Creates an edited or extended image given an original image and a prompt.
+ * @method ResponseInterface|null createImageVariation(array $parameters = [], array $options = []) Creates a variation of a given image.
+ * @method ResponseInterface|null listModels(array $parameters = [], array $options = []) Lists the currently available models.
+ * @method ResponseInterface|null retrieveModel(array $parameters, array $options = []) Retrieves a model instance.
+ * @method ResponseInterface|null deleteModel(array $parameters, array $options = []) Deletes a fine-tuned model.
+ * @method ResponseInterface|null createModeration(array $parameters = [], array $options = []) Classifies if text and / or image inputs are potentially harmful.
+ * @method ResponseInterface|null createAssistant(array $parameters = [], array $options = []) Creates an assistant with a model and instructions.
+ * @method ResponseInterface|null listAssistants(array $parameters = [], array $options = []) Returns a list of assistants.
+ * @method ResponseInterface|null retrieveAssistant(array $parameters, array $options = []) Retrieves an assistant.
+ * @method ResponseInterface|null modifyAssistant(array $parameters, array $options = []) Modifies an assistant.
+ * @method ResponseInterface|null deleteAssistant(array $parameters, array $options = []) Deletes an assistant.
+ * @method ResponseInterface|null createThread(array $parameters = [], array $options = []) Creates a thread.
+ * @method ResponseInterface|null retrieveThread(array $parameters, array $options = []) Retrieves a thread.
+ * @method ResponseInterface|null modifyThread(array $parameters, array $options = []) Modifies a thread.
+ * @method ResponseInterface|null deleteThread(array $parameters, array $options = []) Deletes a thread.
+ * @method ResponseInterface|null createMessage(array $parameters, array $options = []) Creates a message in a thread.
+ * @method ResponseInterface|null listMessages(array $parameters, array $options = []) Returns a list of messages for a given thread.
+ * @method ResponseInterface|null retrieveMessage(array $parameters, array $options = []) Retrieves a message.
+ * @method ResponseInterface|null modifyMessage(array $parameters, array $options = []) Modifies a message.
+ * @method ResponseInterface|null deleteMessage(array $parameters, array $options = []) Deletes a message.
+ * @method ResponseInterface|null createRun(array $parameters, array $options, ?\callable $streamCallback = null) Creates a run.
+ * @method ResponseInterface|null createThreadAndRun(array $options, ?\callable $streamCallback = null) Creates a thread and runs it in one request.
+ * @method ResponseInterface|null listRuns(array $parameters, array $options = []) Returns a list of runs belonging to a thread.
+ * @method ResponseInterface|null retrieveRun(array $parameters, array $options = []) Retrieves a run.
+ * @method ResponseInterface|null modifyRun(array $parameters, array $options = []) Modifies a run.
+ * @method ResponseInterface|null submitToolOutputsToRun(array $parameters, array $options, ?\callable $streamCallback = null) Submits tool outputs to a run.
+ * @method ResponseInterface|null cancelRun(array $parameters, array $options = []) Cancels a run that is in progress.
+ * @method ResponseInterface|null listRunSteps(array $parameters, array $options = []) Returns a list of run steps belonging to a run.
+ * @method ResponseInterface|null retrieveRunStep(array $parameters, array $options = []) Retrieves a run step.
+ * @method ResponseInterface|null createVectorStore(array $parameters = [], array $options = []) Creates a vector store.
+ * @method ResponseInterface|null listVectorStores(array $parameters = [], array $options = []) Returns a list of vector stores.
+ * @method ResponseInterface|null retrieveVectorStore(array $parameters, array $options = []) Retrieves a vector store.
+ * @method ResponseInterface|null modifyVectorStore(array $parameters, array $options = []) Modifies a vector store.
+ * @method ResponseInterface|null deleteVectorStore(array $parameters, array $options = []) Deletes a vector store.
+ * @method ResponseInterface|null createVectorStoreFile(array $parameters, array $options = []) Creates a vector store file by attaching a file to a vector store.
+ * @method ResponseInterface|null listVectorStoreFiles(array $parameters, array $options = []) Returns a list of vector store files.
+ * @method ResponseInterface|null retrieveVectorStoreFile(array $parameters, array $options = []) Retrieves a vector store file.
+ * @method ResponseInterface|null deleteVectorStoreFile(array $parameters, array $options = []) Deletes a vector store file.
+ * @method ResponseInterface|null createVectorStoreFileBatch(array $parameters, array $options = []) Creates a vector store file batch.
+ * @method ResponseInterface|null retrieveVectorStoreFileBatch(array $parameters, array $options = []) Retrieves a vector store file batch.
+ * @method ResponseInterface|null cancelVectorStoreFileBatch(array $parameters, array $options = []) Cancels a vector store file batch.
+ * @method ResponseInterface|null listVectorStoreFilesInBatch(array $parameters, array $options = []) Returns a list of vector store files in a batch.
+ * @method ResponseInterface|null listInvites(array $parameters = [], array $options = []) Returns a list of invites in the organization.
+ * @method ResponseInterface|null createInvite(array $parameters = [], array $options = []) Creates an invite for a user to the organization.
+ * @method ResponseInterface|null retrieveInvite(array $parameters, array $options = []) Retrieves an invite.
+ * @method ResponseInterface|null deleteInvite(array $parameters, array $options = []) Deletes an invite.
+ * @method ResponseInterface|null listUsers(array $parameters = [], array $options = []) Lists all of the users in the organization.
+ * @method ResponseInterface|null modifyUser(array $parameters, array $options = []) Modifies a user's role in the organization.
+ * @method ResponseInterface|null retrieveUser(array $parameters, array $options = []) Retrieves a user by their identifier.
+ * @method ResponseInterface|null deleteUser(array $parameters, array $options = []) Deletes a user from the organization.
+ * @method ResponseInterface|null listProjects(array $parameters = [], array $options = []) Returns a list of projects.
+ * @method ResponseInterface|null createProject(array $parameters = [], array $options = []) Creates a new project in the organization.
+ * @method ResponseInterface|null retrieveProject(array $parameters, array $options = []) Retrieves a project.
+ * @method ResponseInterface|null modifyProject(array $parameters, array $options = []) Modifies a project in the organization.
+ * @method ResponseInterface|null archiveProject(array $parameters, array $options = []) Archives a project in the organization.
+ * @method ResponseInterface|null listProjectUsers(array $parameters, array $options = []) Returns a list of users in the project.
+ * @method ResponseInterface|null createProjectUser(array $parameters, array $options = []) Adds a user to the project.
+ * @method ResponseInterface|null retrieveProjectUser(array $parameters, array $options = []) Retrieves a user in the project.
+ * @method ResponseInterface|null modifyProjectUser(array $parameters, array $options = []) Modifies a user's role in the project.
+ * @method ResponseInterface|null deleteProjectUser(array $parameters, array $options = []) Deletes a user from the project.
+ * @method ResponseInterface|null listProjectServiceAccounts(array $parameters, array $options = []) Returns a list of service accounts in the project.
+ * @method ResponseInterface|null createProjectServiceAccount(array $parameters, array $options = []) Creates a new service account in the project.
+ * @method ResponseInterface|null retrieveProjectServiceAccount(array $parameters, array $options = []) Retrieves a service account in the project.
+ * @method ResponseInterface|null deleteProjectServiceAccount(array $parameters, array $options = []) Deletes a service account from the project.
+ * @method ResponseInterface|null listProjectApiKeys(array $parameters, array $options = []) Returns a list of API keys in the project.
+ * @method ResponseInterface|null retrieveProjectApiKey(array $parameters, array $options = []) Retrieves an API key in the project.
+ * @method ResponseInterface|null deleteProjectApiKey(array $parameters, array $options = []) Deletes an API key from the project.
+ * @method ResponseInterface|null listAuditLogs(array $parameters, array $options = []) Lists user actions and configuration changes within this organization.
  */
 class OpenAI
 {
     /**
-     * The HTTP client instance used for sending requests.
+     * Constructs a new instance of the OpenAI client.
+     *
+     * @param RequestFactoryInterface $requestFactory The PSR-17 request factory.
+     * @param StreamFactoryInterface  $streamFactory  The PSR-17 stream factory.
+     * @param UriFactoryInterface     $uriFactory     The PSR-17 URI factory.
+     * @param ClientInterface         $httpClient     The PSR-18 HTTP client.
+     * @param string                  $apiKey         Your OpenAI API key.
+     * @param string                  $origin         Custom API origin (hostname).
+     * @param string                  $basePath       Custom base path.
      */
-    private ClientInterface $httpClient;
-
-    /**
-     * The PSR-17 request factory instance used for creating requests.
-     */
-    private RequestFactoryInterface $requestFactory;
-
-    /**
-     * The PSR-17 stream factory instance used for creating request bodies.
-     */
-    private StreamFactoryInterface $streamFactory;
-
-    /**
-     * The PSR-17 URI factory instance used for creating URIs.
-     */
-    private UriFactoryInterface $uriFactory;
-
-    /**
-     * OpenAI API Key
-     */
-    public string $apiKey = '';
-
-    /**
-     * OpenAI Organization ID
-     */
-    public string $organization = '';
-
-    /**
-     * OpenAI API Origin (defaults to api.openai.com)
-     */
-    public string $origin = '';
-
-    /**
-     * OpenAI API Version (defaults to v1)
-     */
-    public ?string $apiVersion = '';
-
     public function __construct(
-        RequestFactoryInterface $requestFactory,
-        StreamFactoryInterface $streamFactory,
-        UriFactoryInterface $uriFactory,
-        ClientInterface $httpClient,
+        private readonly RequestFactoryInterface $requestFactory,
+        private readonly StreamFactoryInterface $streamFactory,
+        private readonly UriFactoryInterface $uriFactory,
+        private readonly ClientInterface $httpClient,
         #[SensitiveParameter]
-        string $apiKey,
-        string $organization = '',
-        string $origin = '',
-        ?string $apiVersion = null
-    ) {
-        $this->requestFactory = $requestFactory;
-        $this->streamFactory = $streamFactory;
-        $this->uriFactory = $uriFactory;
-        $this->httpClient = $httpClient;
-        $this->apiKey = $apiKey;
-        $this->organization = $organization;
-        $this->origin = $origin;
-        $this->apiVersion = $apiVersion;
-    }
+        private readonly string $apiKey,
+        private readonly string $organization = '',
+        private readonly string $origin = '',
+        private readonly string $basePath = ''
+    ) {}
 
     /**
      * Magic method to call the OpenAI API endpoints.
@@ -128,18 +162,20 @@ class OpenAI
      * @param string $key The endpoint method.
      * @param array $args The arguments for the endpoint method.
      *
-     * @return ResponseInterface The API response.
+     * @return ResponseInterface|null The API response or null if streaming.
      *
-     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
+     * @throws OpenAIException       If the API returns an error.
+     * @throws InvalidArgumentException If the parameters are invalid.
+     * @throws RandomException
      */
-    public function __call(string $key, array $args): ResponseInterface
+    public function __call(string $key, array $args): ?ResponseInterface
     {
         $endpoint = OpenAIURLBuilder::getEndpoint($key);
         $httpMethod = $endpoint['method'];
 
-        [$parameter, $opts] = $this->extractCallArguments($args);
+        [$parameters, $opts, $streamCallback] = $this->extractCallArguments($args);
 
-        return $this->callAPI($httpMethod, $key, $parameter, $opts);
+        return $this->callAPI($httpMethod, $key, $parameters, $opts, $streamCallback);
     }
 
     /**
@@ -147,92 +183,184 @@ class OpenAI
      *
      * @param array $args The input arguments.
      *
-     * @return array An array containing the extracted parameter and options.
+     * @return array An array containing the extracted parameters, options, and stream callback.
+     *
+     * @throws InvalidArgumentException If the first argument is not an array.
      */
     private function extractCallArguments(array $args): array
     {
-        $parameter = null;
+        $parameters = [];
         $opts = [];
+        $streamCallback = null;
 
         if (!isset($args[0])) {
-            return [$parameter, $opts];
+            return [$parameters, $opts, $streamCallback];
         }
 
-        if (\is_string($args[0])) {
-            $parameter = $args[0];
+        if (\is_array($args[0])) {
+            $parameters = $args[0];
 
             if (isset($args[1]) && \is_array($args[1])) {
                 $opts = $args[1];
+
+                if (isset($args[2]) && \is_callable($args[2])) {
+                    $streamCallback = $args[2];
+                }
+            } elseif (isset($args[1]) && \is_callable($args[1])) {
+                $streamCallback = $args[1];
             }
-        } elseif (\is_array($args[0])) {
-            $opts = $args[0];
+        } else {
+            throw new InvalidArgumentException('First argument must be an array of parameters.');
         }
 
-        return [$parameter, $opts];
+        return [$parameters, $opts, $streamCallback];
     }
 
     /**
-     * Calls the OpenAI API with the provided method, key, parameter, and options.
+     * Calls the OpenAI API with the provided method, key, parameters, and options.
      *
      * @param string $method The HTTP method for the request.
      * @param string $key The API endpoint key.
-     * @param string|null $parameter An optional parameter for the request.
-     * @param array $opts The options for the request.
+     * @param array $parameters Parameters for URL placeholders.
+     * @param array $opts The options for the request body or query.
+     * @param callable|null $streamCallback Callback function to handle streaming data.
      *
-     * @return ResponseInterface The API response.
+     * @return ResponseInterface|null The API response or null if streaming.
      *
-     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
+     * @throws OpenAIException If the API returns an error.
+     * @throws RandomException
      */
-    private function callAPI(string $method, string $key, ?string $parameter = null, array $opts = []): ResponseInterface
-    {
-        return $this->sendRequest(
-            OpenAIURLBuilder::createUrl($this->uriFactory, $key, $parameter, $this->origin, $this->apiVersion),
-            $method,
-            $opts
+    private function callAPI(
+        string $method,
+        string $key,
+        array $parameters = [],
+        array $opts = [],
+        ?callable $streamCallback = null
+    ): ?ResponseInterface {
+        $uri = OpenAIURLBuilder::createUrl(
+            $this->uriFactory,
+            $key,
+            $parameters,
+            $this->origin,
+            $this->basePath
         );
+
+        // Extract headers from opts
+        $customHeaders = $opts['customHeaders'] ?? [];
+        unset($opts['customHeaders']); // Remove headers from opts to avoid sending them in the body
+
+        return $this->sendRequest($uri, $method, $opts, $streamCallback, $customHeaders);
     }
 
     /**
      * Sends an HTTP request to the OpenAI API and returns the response.
      *
-     * @param UriInterface $uri The URL to send the request to.
-     * @param string $method The HTTP method to use (e.g., 'GET', 'POST', etc.).
-     * @param array $params An associative array of parameters to send with the request (optional).
+     * @param UriInterface $uri The URI to send the request to.
+     * @param string $method The HTTP method to use.
+     * @param array $params Parameters to include in the request body.
+     * @param callable|null $streamCallback Callback function to handle streaming data.
      *
-     * @return ResponseInterface The response from the OpenAI API.
+     * @return ResponseInterface|null The response from the OpenAI API or null if streaming.
      *
-     * @throws OpenAIException If the API returns an error (HTTP status code >= 400).
-     * @throws Exception
+     * @throws OpenAIException If the API returns an error.
+     * @throws RandomException
      */
-    private function sendRequest(UriInterface $uri, string $method, array $params = []): ResponseInterface
-    {
+    private function sendRequest(
+        UriInterface $uri,
+        string $method,
+        array $params = [],
+        ?callable $streamCallback = null,
+        array $customHeaders = []
+    ): ?ResponseInterface {
         $request = $this->requestFactory->createRequest($method, $uri);
-
         $isMultipart = $this->isMultipartRequest($params);
-        $boundary = $isMultipart ? $this->generateMultipartBoundary() : '';
-        $headers = $this->createHeaders($isMultipart, $boundary);
+        $boundary = $isMultipart ? $this->generateMultipartBoundary() : null;
+        $headers = $this->createHeaders($isMultipart, $boundary, $customHeaders);
         $request = $this->applyHeaders($request, $headers);
 
         $body = $isMultipart
             ? $this->createMultipartStream($params, $boundary)
             : $this->createJsonBody($params);
 
-        if (!empty($body)) {
+        if ($body !== '') {
             $request = $request->withBody($this->streamFactory->createStream($body));
         }
 
         try {
+            if ($streamCallback !== null && ($params['stream'] ?? false) === true) {
+                $this->handleStreamingResponse($request, $streamCallback);
+
+                return null;
+            }
+
             $response = $this->httpClient->sendRequest($request);
 
-            // Check if the response has a non-200 status code (error)
             if ($response->getStatusCode() >= 400) {
                 throw new OpenAIException($response->getBody()->getContents(), $response->getStatusCode());
             }
-        } catch (ClientExceptionInterface $e) {
-            throw new OpenAIException($e->getMessage(), $e->getCode(), $e->getPrevious());
-        }
 
-        return $response;
+            return $response;
+        } catch (ClientExceptionInterface $e) {
+            throw new OpenAIException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Handles a streaming response from the API.
+     *
+     * @param RequestInterface $request        The request to send.
+     * @param callable         $streamCallback The callback function to handle streaming data.
+     *
+     * @return void
+     *
+     * @throws OpenAIException If an error occurs during streaming.
+     */
+    private function handleStreamingResponse(RequestInterface $request, callable $streamCallback): void
+    {
+        try {
+            $response = $this->httpClient->sendRequest($request);
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode >= 400) {
+                throw new OpenAIException($response->getBody()->getContents(), $statusCode);
+            }
+
+            $body = $response->getBody();
+            $buffer = '';
+
+            while (!$body->eof()) {
+                $chunk = $body->read(8192);
+                $buffer .= $chunk;
+
+                while (($newlinePos = \strpos($buffer, "\n")) !== false) {
+                    $line = \substr($buffer, 0, $newlinePos);
+                    $buffer = \substr($buffer, $newlinePos + 1);
+
+                    $data = \trim($line);
+
+                    if ($data === '') {
+                        continue;
+                    }
+
+                    if ($data === 'data: [DONE]') {
+                        return;
+                    }
+
+                    if (\str_starts_with($data, 'data: ')) {
+                        $json = \substr($data, 6);
+
+                        try {
+                            $decoded = \json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+                            $streamCallback($decoded);
+                        } catch (JsonException $e) {
+                            throw new OpenAIException('JSON decode error: ' . $e->getMessage(), 0, $e);
+                        }
+                    }
+                }
+            }
+        } catch (ClientExceptionInterface $e) {
+            throw new OpenAIException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     /**
@@ -240,7 +368,7 @@ class OpenAI
      *
      * @return string The generated multipart boundary string.
      *
-     * @throws Exception
+     * @throws RandomException
      */
     private function generateMultipartBoundary(): string
     {
@@ -250,27 +378,35 @@ class OpenAI
     /**
      * Creates the headers for an API request.
      *
-     * @param bool $isMultipart Indicates whether the request is multipart or not.
-     * @param string|null $boundary The multipart boundary string, if applicable.
+     * @param bool        $isMultipart Indicates whether the request is multipart.
+     * @param string|null $boundary    The multipart boundary string, if applicable.
      *
      * @return array An associative array of headers.
      */
-    private function createHeaders(bool $isMultipart, ?string $boundary): array
+    private function createHeaders(bool $isMultipart, ?string $boundary, array $customHeaders = []): array
     {
-        return [
-            'authorization' => 'Bearer ' . $this->apiKey,
-            'openai-organization' => $this->organization ?: '',
-            'content-type' => $isMultipart
+        $defaultHeaders = [
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'OpenAI-Organization' => $this->organization ?: '',
+            'Content-Type' => $isMultipart
                 ? "multipart/form-data; boundary={$boundary}"
                 : 'application/json',
         ];
+
+        // Remove OpenAI-Organization header if it's empty
+        if ($defaultHeaders['OpenAI-Organization'] === '') {
+            unset($defaultHeaders['OpenAI-Organization']);
+        }
+
+        // Merge custom headers, overriding defaults if necessary
+        return \array_merge($defaultHeaders, $customHeaders);
     }
 
     /**
      * Applies the headers to the given request.
      *
      * @param RequestInterface $request The request to apply headers to.
-     * @param array $headers An associative array of headers to apply.
+     * @param array            $headers An associative array of headers to apply.
      *
      * @return RequestInterface The request with headers applied.
      */
@@ -284,53 +420,64 @@ class OpenAI
     }
 
     /**
-     * Creates a JSON encoded body string from the given parameters.
+     * Creates a JSON-encoded body string from the given parameters.
      *
      * @param array $params An associative array of parameters to encode as JSON.
      *
-     * @return string The JSON encoded body string, or an empty string if encoding fails.
+     * @return string The JSON-encoded body string.
+     *
+     * @throws OpenAIException If JSON encoding fails.
      */
     private function createJsonBody(array $params): string
     {
-        try {
-            return !empty($params) ? \json_encode($params, JSON_THROW_ON_ERROR) : '';
-        } catch (JsonException $e) {
-            // Fallback to an empty string if encoding fails
+        if (empty($params)) {
             return '';
+        }
+
+        try {
+            return \json_encode($params, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            throw new OpenAIException('JSON encode error: ' . $e->getMessage(), 0, $e);
         }
     }
 
     /**
-     * Creates a multipart stream for sending files, images, or masks in a request.
+     * Creates a multipart stream for sending files in a request.
      *
      * @param array $params An associative array of parameters to send with the request.
-     * @param string $multipartBoundary A string used as a boundary to separate parts of the multipart stream.
+     * @param string $boundary A string used as a boundary to separate parts of the multipart stream.
      *
      * @return string The multipart stream as a string.
-     * @throws Exception
+     * @throws RandomException
      */
-    private function createMultipartStream(array $params, string $multipartBoundary): string
+    private function createMultipartStream(array $params, string $boundary): string
     {
         $multipartStream = '';
 
         foreach ($params as $key => $value) {
-            $multipartStream .= "--{$multipartBoundary}\r\n";
+            $multipartStream .= "--{$boundary}\r\n";
             $multipartStream .= "Content-Disposition: form-data; name=\"{$key}\"";
 
-            if (\in_array($key, ['file', 'image', 'mask'], true)) {
+            if (\in_array($key, ['file', 'image', 'mask', 'data'], true)) {
                 $filename = \bin2hex(\random_bytes(20)) . '.' . \mb_strtolower(\mb_substr(
                     \basename($value),
                     \mb_strrpos(\basename($value), '.') + 1
                 ));
+                $fileContents = \file_get_contents($value);
+
+                if ($key === 'data') {
+                    $fileContents = \base64_encode($fileContents);
+                }
+
                 $multipartStream .= "; filename=\"{$filename}\"\r\n";
-                $multipartStream .= "Content-Type: application/octet-stream\r\n";
-                $multipartStream .= "\r\n" . \file_get_contents($value) . "\r\n";
+                $multipartStream .= "Content-Type: application/octet-stream\r\n\r\n";
+                $multipartStream .= "{$fileContents}\r\n";
             } else {
-                $multipartStream .= "\r\n\r\n" . $value . "\r\n";
+                $multipartStream .= "\r\n\r\n{$value}\r\n";
             }
         }
 
-        $multipartStream .= "--{$multipartBoundary}--\r\n";
+        $multipartStream .= "--{$boundary}--\r\n";
 
         return $multipartStream;
     }
@@ -338,12 +485,12 @@ class OpenAI
     /**
      * Determines if a request is a multipart request based on the provided parameters.
      *
-     * @param array $params An associative array of parameters to check for multipart request indicators.
+     * @param array $params An associative array of parameters to check.
      *
      * @return bool True if the request is a multipart request, false otherwise.
      */
     private function isMultipartRequest(array $params): bool
     {
-        return \array_intersect_key(\array_flip(['file', 'image', 'mask']), $params) !== [];
+        return \array_intersect_key(\array_flip(['file', 'image', 'mask', 'data']), $params) !== [];
     }
 }

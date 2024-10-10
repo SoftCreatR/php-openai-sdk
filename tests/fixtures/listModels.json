@@ -1,4 +1,5 @@
 {
+  "object": "list",
   "data": [
     {
       "id": "model-id-0",
@@ -17,7 +18,7 @@
       "object": "model",
       "created": 1686935002,
       "owned_by": "openai"
-    }
+    },
   ],
   "object": "list"
 }

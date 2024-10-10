@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,24 +19,27 @@
 require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the createChatCompletion method with specific options for GPT-4 with Vision support.
-OpenAIFactory::request('createChatCompletion', [
-    'model' => 'gpt-4-vision-preview',
-    'max_tokens' => 300,
-    'messages' => [
-        [
-            'role' => 'user',
-            'content' => [
-                [
-                    'type' => 'text',
-                    'text' => 'What’s in this image?',
-                ],
-                [
-                    'type' => 'image_url',
-                    'image_url' => [
-                        'url' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg',
+OpenAIFactory::request(
+    'createChatCompletion',
+    [
+        'model' => 'gpt-4o',
+        'max_tokens' => 300,
+        'messages' => [
+            [
+                'role' => 'user',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => 'What’s in this image?',
+                    ],
+                    [
+                        'type' => 'image_url',
+                        'image_url' => [
+                            'url' => 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg',
+                        ],
                     ],
                 ],
             ],
         ],
-    ],
-]);
+    ]
+);

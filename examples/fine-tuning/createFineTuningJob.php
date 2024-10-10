@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +19,10 @@
 require_once __DIR__ . '/../OpenAIFactory.php';
 
 // Call the createFineTuningJob method with options.
-OpenAIFactory::request('createFineTuningJob', [
-    'training_file' => 'file-...',
-    'model' => 'gpt-3.5-turbo',
-]);
+OpenAIFactory::request(
+    'createFineTuningJob',
+    [
+        'training_file' => 'file-BK7bzQj3FfZFXr7DbL6xJwfo',
+        'model' => 'gpt-4o-mini',
+    ]
+);

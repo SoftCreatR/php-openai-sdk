@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,10 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../OpenAIFactory.php';
+require_once __DIR__ . '/../../OpenAIFactory.php';
 
-// Call the createFile method with options.
-OpenAIFactory::request('createFile', [
-    'file' => __DIR__ . '/fixtures/mydata.jsonl',
-    'purpose' => 'fine-tune',
-]);
+// Call the deleteVectorStore method with vector store ID and custom headers.
+OpenAIFactory::request(
+    'deleteVectorStore',
+    ['vector_store_id' => 'vs-abc123'],
+    ['customHeaders' => ['OpenAI-Beta' => 'assistants=v2']]
+);

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2023, Sascha Greuel and Contributors
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,11 +18,20 @@
 
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// Call the createChatCompletion method with options.
-OpenAIFactory::request('createChatCompletion', [
-    'model' => 'gpt-3.5-turbo',
-    'messages' => [
-        ['role' => 'system', 'content' => 'You are a helpful assistant.'],
-        ['role' => 'user', 'content' => 'Hello!'],
-    ],
-]);
+// Call the createChatCompletion method.
+OpenAIFactory::request(
+    'createChatCompletion',
+    [
+        'model' => 'gpt-4o',
+        'messages' => [
+            [
+                'role' => 'system',
+                'content' => 'You are a helpful assistant.',
+            ],
+            [
+                'role' => 'user',
+                'content' => 'Hello!',
+            ],
+        ],
+    ]
+);
