@@ -18,11 +18,18 @@
 
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// Call the createModeration method with options.
+// Call the createModeration method with specific options for text and image classification.
 OpenAIFactory::request(
     'createModeration',
     [
         'model' => 'omni-moderation-latest',
-        'input' => 'I want to kill them.',
+        'input' => [
+            [
+                'type' => 'image_url',
+                'image_url' => [
+                    'url' => 'https://upload.wikimedia.org/wikipedia/en/7/7f/Wolverine_%26_Deadpool_104.jpg',
+                ],
+            ],
+        ],
     ]
 );
