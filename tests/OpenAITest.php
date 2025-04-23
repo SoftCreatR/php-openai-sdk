@@ -356,7 +356,7 @@ final class OpenAITest extends TestCase
         );
 
         $mockedClient
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('sendRequest')
             ->willReturnCallback(function (RequestInterface $request) {
                 $this->assertFalse(
@@ -559,6 +559,67 @@ final class OpenAITest extends TestCase
     }
 
     /**
+     * @throws ReflectionException
+     */
+    public function testExtractCallArgumentsWithCallableAsSecondArgument(): void
+    {
+        $reflection = TestHelper::getPrivateMethod($this->openAI, 'extractCallArguments');
+        $callback = static fn() => 'i-am-called';
+
+        // Pass [ parameters, callback ]
+        [$parameters, $opts, $streamCallback] = $reflection->invoke(
+            $this->openAI,
+            [ ['foo' => 'bar'], $callback ]
+        );
+
+        $this->assertSame(['foo' => 'bar'], $parameters);
+        $this->assertSame([], $opts);
+        $this->assertSame($callback, $streamCallback);
+    }
+
+    /**
+     * Ensure that GET requests with parameters and options
+     * get merged into the URI query string.
+     */
+    public function testListModelsAddsQueryParametersToUri(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $query = $request->getUri()->getQuery();
+
+            $this->assertStringContainsString('foo=bar', $query);
+            $this->assertStringContainsString('baz=qux', $query);
+
+            return new Response(200, [], '{"success":true}');
+        });
+
+        $response = $this->openAI->listModels(
+            ['foo' => 'bar'],
+            ['baz' => 'qux']
+        );
+
+        $this->assertEquals(200, $response->getStatusCode());
+    }
+
+    /**
+     * @throws ReflectionException
+     *
+     * Verifies that if a multipart-key value is itself an array,
+     * isMultipartRequest() returns false.
+     */
+    public function testIsMultipartRequestReturnsFalseWhenValueIsArray(): void
+    {
+        $reflection = TestHelper::getPrivateMethod($this->openAI, 'isMultipartRequest');
+
+        // 'file' key is present, but its value is an array → should bail out early
+        $result = $reflection->invoke(
+            $this->openAI,
+            [ 'file' => ['not', 'a', 'string'] ]
+        );
+
+        $this->assertFalse($result);
+    }
+
+    /**
      * Mocks an API call using a callable and a response file.
      *
      * Mocks the HTTP client to return a predefined response loaded from a file,
@@ -633,7 +694,7 @@ final class OpenAITest extends TestCase
     private function sendRequestMock(callable $responseCallback): void
     {
         $this->mockedClient
-            ->expects(self::once())
+            ->expects($this->once())
             ->method('sendRequest')
             ->willReturnCallback($responseCallback);
     }
