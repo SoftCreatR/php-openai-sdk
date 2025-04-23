@@ -16,7 +16,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-require_once __DIR__ . '/../OpenAIFactory.php';
+require_once __DIR__ . '/../../OpenAIFactory.php';
 
-// Call the listBatches method.
-OpenAIFactory::request('listBatch');
+// Call the createAdminApiKey using the OPENAI_ADMIN_KEY.
+OpenAIFactory::adminRequest(
+    'createAdminApiKey',
+    ['name' => 'New Admin Key']
+);

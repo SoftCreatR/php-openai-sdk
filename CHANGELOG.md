@@ -5,6 +5,106 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-04-17
+
+### Added
+
+- **New Endpoints**:
+    - **Responses**:
+        - `createResponse`: Creates a response object.
+        - `getResponse`: Retrieves a response by its ID.
+        - `deleteResponse`: Deletes a response.
+        - `listInputItems`: Lists input items for a response.
+    - **Chat Completions**:
+        - `getChatCompletion`: Retrieves a chat completion by its ID.
+        - `getChatMessages`: Retrieves messages for a chat completion.
+        - `listChatCompletions`: Lists chat completions.
+        - `updateChatCompletion`: Updates a chat completion.
+        - `deleteChatCompletion`: Deletes a chat completion.
+    - **Admin API Keys**:
+        - `listAdminApiKeys`: Lists all admin API keys.
+        - `createAdminApiKey`: Creates an admin API key.
+        - `retrieveAdminApiKey`: Retrieves an admin API key.
+        - `deleteAdminApiKey`: Deletes an admin API key.
+    - **Certificates**:
+        - `uploadCertificate`: Uploads a certificate.
+        - `listCertificates`: Lists certificates in the organization.
+        - `getCertificate`: Retrieves a certificate by ID.
+        - `modifyCertificate`: Modifies a certificate.
+        - `deleteCertificate`: Deletes a certificate.
+        - `listProjectCertificates`: Lists certificates within a project.
+        - `activateCertificates`: Activates certificates.
+        - `deactivateCertificates`: Deactivates certificates.
+        - `activateProjectCertificates`: Activates certificates for a project.
+        - `deactivateProjectCertificates`: Deactivates certificates for a project.
+    - **Rate Limits**:
+        - `listProjectRateLimits`: Lists rate limits for a project.
+        - `modifyProjectRateLimit`: Modifies a project's rate limit.
+    - **Usage**:
+        - `getCompletionsUsage`: Retrieves usage metrics for completions.
+        - `getEmbeddingsUsage`: Retrieves usage metrics for embeddings.
+        - `getModerationsUsage`: Retrieves usage metrics for moderations.
+        - `getImagesUsage`: Retrieves usage metrics for images.
+        - `getAudioSpeechesUsage`: Retrieves usage metrics for audio speeches.
+        - `getVectorStoresUsage`: Retrieves usage metrics for vector stores.
+        - `getCosts`: Retrieves cost data for the organization.
+  - **Vector Stores**:
+      - `searchVectorStore`: Search a vector store for relevant chunks based on a query and file attributes filter.
+  - **Vector Store Files**:
+      - `retrieveVectorStoreFileContent`: Retrieve the parsed contents of a vector store file.
+      - `updateVectorStoreFileContent`: Update attributes on a vector store file.
+
+- **New Examples**:
+    - **Responses**:
+        - `examples/responses/createResponse.php`
+        - `examples/responses/getResponse.php`
+        - `examples/responses/deleteResponse.php`
+        - `examples/responses/listInputItems.php`
+    - **Chat Completions**:
+        - `examples/chat/getChatCompletion.php`
+        - `examples/chat/getChatMessages.php`
+        - `examples/chat/listChatCompletions.php`
+        - `examples/chat/updateChatCompletion.php`
+        - `examples/chat/deleteChatCompletion.php`
+    - **Admin API Keys**:
+        - `examples/administration/admin-api-keys/listAdminApiKeys.php`
+        - `examples/administration/admin-api-keys/createAdminApiKey.php`
+        - `examples/administration/admin-api-keys/retrieveAdminApiKey.php`
+        - `examples/administration/admin-api-keys/deleteAdminApiKey.php`
+    - **Certificates**:
+        - `examples/administration/certificates/uploadCertificate.php`
+        - `examples/administration/certificates/listCertificates.php`
+        - `examples/administration/certificates/getCertificate.php`
+        - `examples/administration/certificates/modifyCertificate.php`
+        - `examples/administration/certificates/deleteCertificate.php`
+        - `examples/administration/certificates/listProjectCertificates.php`
+        - `examples/administration/certificates/activateCertificates.php`
+        - `examples/administration/certificates/deactivateCertificates.php`
+        - `examples/administration/certificates/activateProjectCertificates.php`
+        - `examples/administration/certificates/deactivateProjectCertificates.php`
+    - **Rate Limits**:
+        - `examples/administration/rate-limits/listProjectRateLimits.php`
+        - `examples/administration/rate-limits/modifyProjectRateLimit.php`
+    - **Usage**:
+        - `examples/administration/usage/getCompletionsUsage.php`
+        - `examples/administration/usage/getEmbeddingsUsage.php`
+        - `examples/administration/usage/getModerationsUsage.php`
+        - `examples/administration/usage/getImagesUsage.php`
+        - `examples/administration/usage/getAudioSpeechesUsage.php`
+        - `examples/administration/usage/getVectorStoresUsage.php`
+        - `examples/administration/usage/getCosts.php`
+    - **Vector Stores**:
+        - `examples/assistants/vector-stores/searchVectorStore.php`
+    - **Vector Store Files**:
+        - `examples/assistants/vector-store-files/retrieveVectorStoreFileContent.php`
+        - `examples/assistants/vector-store-files/updateVectorStoreFileAttributes.php`
+
+### Changed
+
+- Renamed `listBatch` to `listBatches`
+- Updated `OpenAIFactory` to read configuration from .env file, instead of requiring to modify the file to run examples
+- Fixed `OpenAI::callAPI()` to turn GET options into query strings, split path vs. query parameters, and clear body opts
+
 ## [3.0.0] - 2024-10-10
 
 ### Removed

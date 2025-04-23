@@ -1,65 +1,56 @@
 <?php
 
 /*
- * [License Information]
+ * Copyright (c) 2023-present, Sascha Greuel and Contributors
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use Dotenv\Dotenv;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
 use SoftCreatR\OpenAI\OpenAI;
 use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
 /**
+ * Load .env from project root if present
+ */
+$projectRoot = \dirname(__DIR__);
+
+if (\file_exists($projectRoot . '/.env')) {
+    Dotenv::createImmutable($projectRoot)->load();
+}
+
+/**
  * Example factory class for creating and using the OpenAI client.
  */
 final class OpenAIFactory
 {
-    /**
-     * OpenAI API Key.
-     *
-     * @see https://platform.openai.com/docs/api-reference/authentication
-     * @var string
-     */
-    private const OPENAI_API_KEY = 'your_api_key';
+    private function __construct() {}
 
     /**
-     * OpenAI Admin API Key.
+     * Create an OpenAI client.
      *
-     * @see https://platform.openai.com/docs/api-reference/administration
-     * @var string
-     */
-    private const OPENAI_ADMIN_KEY = 'your_admin_api_key';
-
-    /**
-     * OpenAI Organization ID (optional).
-     *
-     * @var string
-     */
-    private const ORGANIZATION_ID = '';
-
-    /**
-     * Prevents instantiation of this class.
-     */
-    private function __construct()
-    {
-        // This class should not be instantiated.
-    }
-
-    /**
-     * Creates an instance of the OpenAI client.
-     *
-     * @param string $apiKey The OpenAI API key.
-     *
-     * @return OpenAI The OpenAI client instance.
+     * @param string $apiKey
+     * @return OpenAI
      */
     public static function create(
         #[SensitiveParameter]
-        string $apiKey = self::OPENAI_API_KEY,
-        string $organizationID = self::ORGANIZATION_ID
+        string $apiKey = ''
     ): OpenAI {
         $psr17Factory = new HttpFactory();
         $httpClient = new Client(['stream' => true]);
@@ -70,21 +61,21 @@ final class OpenAIFactory
             uriFactory: $psr17Factory,
             httpClient: $httpClient,
             apiKey: $apiKey,
-            organization: $organizationID
+            organization: $_ENV['OPENAI_ORGANIZATION_ID'] ?? '',
+            origin: $_ENV['OPENAI_API_ORIGIN'] ?? '',
+            basePath: $_ENV['OPENAI_API_BASE_PATH'] ?? '',
         );
     }
 
     /**
-     * Sends a request to the specified OpenAI API endpoint.
+     * Send a generic request to an OpenAI endpoint.
      *
-     * @param string         $method         The name of the API method to call.
-     * @param array          $parameters     An associative array of parameters (URL parameters).
-     * @param array          $options        An associative array of options (body or query parameters).
-     * @param callable|null  $streamCallback Optional callback function for streaming responses.
-     * @param bool           $returnResponse Whether to return the response or not.
-     * @param bool           $useAdminKey    Whether to use the OPENAI_ADMIN_KEY.
-     *
-     * @return mixed
+     * @param string         $method         Method name, e.g. 'createChatCompletion'
+     * @param array          $parameters     URL/path params
+     * @param array          $options        Body or query params
+     * @param callable|null  $streamCallback Stream callback for SSE
+     * @param bool           $returnResponse If true, returns raw body
+     * @param bool           $useAdminKey    If true, uses $_ENV['OPENAI_ADMIN_KEY']
      */
     public static function request(
         string $method,
@@ -94,52 +85,45 @@ final class OpenAIFactory
         bool $returnResponse = false,
         bool $useAdminKey = false
     ): mixed {
-        $openAI = self::create($useAdminKey ? self::OPENAI_ADMIN_KEY : self::OPENAI_API_KEY);
+        $keyName = $useAdminKey ? 'OPENAI_ADMIN_KEY' : 'OPENAI_API_KEY';
+        $openAI = self::create($_ENV[$keyName] ?? '');
 
         try {
             $endpoint = OpenAIURLBuilder::getEndpoint($method);
             $path = $endpoint['path'];
-
-            // Determine if the path contains placeholders
-            $hasPlaceholders = \preg_match('/\{(\w+)}/', $path) === 1;
+            $hasPlaceholders = (bool)\preg_match('/\{\w+}/', $path);
 
             if ($hasPlaceholders) {
-                $urlParameters = $parameters;
-                $bodyOptions = $options;
+                $urlParams = $parameters;
+                $bodyOpts = $options;
             } else {
-                $urlParameters = [];
-                $bodyOptions = $parameters + $options; // Merge parameters and options
+                $urlParams = [];
+                $bodyOpts = $parameters + $options;
             }
 
             if ($streamCallback !== null) {
-                $openAI->{$method}($urlParameters, $bodyOptions, $streamCallback);
-            } else {
-                $response = $openAI->{$method}($urlParameters, $bodyOptions);
-
-                if ($returnResponse) {
-                    return $response->getBody()->getContents();
-                }
-
-                $contentType = $response->getHeaderLine('Content-Type');
-
-                if (\str_contains($contentType, 'application/json')) {
-                    $result = \json_decode(
-                        $response->getBody()->getContents(),
-                        true,
-                        512,
-                        \JSON_THROW_ON_ERROR
-                    );
-
-                    echo "============\n| Response |\n============\n\n";
-                    echo \json_encode($result, \JSON_THROW_ON_ERROR | \JSON_PRETTY_PRINT);
-                    echo "\n\n============\n";
-                } else {
-                    // Handle other content types if necessary
-                    echo "Received response with Content-Type: {$contentType}\n";
-                    echo $response->getBody()->getContents();
-                }
+                $openAI->{$method}($urlParams, $bodyOpts, $streamCallback);
 
                 return null;
+            }
+
+            $response = $openAI->{$method}($urlParams, $bodyOpts);
+
+            if ($returnResponse) {
+                return $response->getBody()->getContents();
+            }
+
+            $contentType = $response->getHeaderLine('Content-Type');
+            $body = $response->getBody()->getContents();
+
+            if (\str_contains($contentType, 'application/json')) {
+                $decoded = \json_decode($body, true, 512, \JSON_THROW_ON_ERROR);
+                echo "============\n| Response |\n============\n\n"
+                    . \json_encode($decoded, \JSON_PRETTY_PRINT | \JSON_THROW_ON_ERROR)
+                    . "\n\n============\n";
+            } else {
+                echo "Received response with Content-Type: {$contentType}\n";
+                echo $body;
             }
         } catch (Exception $e) {
             echo "Error: {$e->getMessage()}\n";
@@ -149,15 +133,7 @@ final class OpenAIFactory
     }
 
     /**
-     * Sends a request to the specified OpenAI API endpoint.
-     *
-     * @param string         $method         The name of the API method to call.
-     * @param array          $parameters     An associative array of parameters (URL parameters).
-     * @param array          $options        An associative array of options (body or query parameters).
-     * @param callable|null  $streamCallback Optional callback function for streaming responses.
-     * @param bool           $returnResponse Whether to return the response or not.
-     *
-     * @return mixed
+     * Send an administrative request.
      */
     public static function adminRequest(
         string $method,

@@ -48,8 +48,19 @@ class OpenAIURLBuilder
         'createTranscription' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/transcriptions'],
         'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations'],
 
-        // Chat Completion
+        // Responses
+        'createResponse' => ['method' => self::HTTP_METHOD_POST, 'path' => '/responses'],
+        'getResponse' => ['method' => self::HTTP_METHOD_GET, 'path' => '/responses/{response_id}'],
+        'deleteResponse' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/responses/{response_id}'],
+        'listInputItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/responses/{response_id}/input_items'],
+
+        // Chat Completions
         'createChatCompletion' => ['method' => self::HTTP_METHOD_POST, 'path' => '/chat/completions'],
+        'getChatCompletion' => ['method' => self::HTTP_METHOD_GET, 'path' => '/chat/completions/{completion_id}'],
+        'getChatMessages' => ['method' => self::HTTP_METHOD_GET, 'path' => '/chat/completions/{completion_id}/messages'],
+        'listChatCompletions' => ['method' => self::HTTP_METHOD_GET, 'path' => '/chat/completions'],
+        'updateChatCompletion' => ['method' => self::HTTP_METHOD_POST, 'path' => '/chat/completions/{completion_id}'],
+        'deleteChatCompletion' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/chat/completions/{completion_id}'],
 
         // Embeddings
         'createEmbedding' => ['method' => self::HTTP_METHOD_POST, 'path' => '/embeddings'],
@@ -66,7 +77,7 @@ class OpenAIURLBuilder
         'createBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/batches'],
         'retrieveBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/batches/{batch_id}'],
         'cancelBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/batches/{batch_id}/cancel'],
-        'listBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/batches'],
+        'listBatches' => ['method' => self::HTTP_METHOD_GET, 'path' => '/batches'],
 
         // Files
         'uploadFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/files'],
@@ -133,11 +144,14 @@ class OpenAIURLBuilder
         'retrieveVectorStore' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}'],
         'modifyVectorStore' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}'],
         'deleteVectorStore' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/vector_stores/{vector_store_id}'],
+        'searchVectorStore' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/search'],
 
         // Vector Store Files
         'createVectorStoreFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/files'],
         'listVectorStoreFiles' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/files'],
         'retrieveVectorStoreFile' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/files/{file_id}'],
+        'retrieveVectorStoreFileContent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/files/{file_id}/content'],
+        'updateVectorStoreFileAttributes' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/files/{file_id}'],
         'deleteVectorStoreFile' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/vector_stores/{vector_store_id}/files/{file_id}'],
 
         // Vector Store File Batches
@@ -145,6 +159,12 @@ class OpenAIURLBuilder
         'retrieveVectorStoreFileBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}'],
         'cancelVectorStoreFileBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel'],
         'listVectorStoreFilesInBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}/files'],
+
+        // Admin API Keys
+        'listAdminApiKeys' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/admin_api_keys'],
+        'createAdminApiKey' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/admin_api_keys'],
+        'retrieveAdminApiKey' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/admin_api_keys/{key_id}'],
+        'deleteAdminApiKey' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/admin_api_keys/{key_id}'],
 
         // Organization Invites
         'listInvites' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/invites'],
@@ -183,8 +203,33 @@ class OpenAIURLBuilder
         'retrieveProjectApiKey' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/api_keys/{key_id}'],
         'deleteProjectApiKey' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/api_keys/{key_id}'],
 
+        // Rate Limits
+        'listProjectRateLimits' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/rate_limits'],
+        'modifyProjectRateLimit' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/rate_limits/{rate_limit_id}'],
+
         // Audit Logs
         'listAuditLogs' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/audit_logs'],
+
+        // Usage
+        'getCompletionsUsage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/usage/completions'],
+        'getEmbeddingsUsage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/usage/embeddings'],
+        'getModerationsUsage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/usage/moderations'],
+        'getImagesUsage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/usage/images'],
+        'getAudioSpeechesUsage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/usage/audio_speeches'],
+        'getVectorStoresUsage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/usage/vector_stores'],
+        'getCosts' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/costs'],
+
+        // Certificates
+        'uploadCertificate' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/certificates'],
+        'getCertificate' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/certificates/{cert_id}'],
+        'modifyCertificate' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/certificates/{certificate_id}'],
+        'deleteCertificate' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/certificates/{certificate_id}'],
+        'listCertificates' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/certificates'],
+        'listProjectCertificates' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/certificates'],
+        'activateCertificates' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/certificates/activate'],
+        'deactivateCertificates' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/certificates/deactivate'],
+        'activateProjectCertificates' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/certificates/activate'],
+        'deactivateProjectCertificates' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/certificates/deactivate'],
     ];
 
     /**
