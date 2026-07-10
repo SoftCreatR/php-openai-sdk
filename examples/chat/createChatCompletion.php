@@ -22,7 +22,7 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 OpenAIFactory::request(
     'createChatCompletion',
     [
-        'model' => 'gpt-4o',
+        'model' => 'gpt-5.4-mini',
         'messages' => [
             [
                 'role' => 'system',
@@ -33,5 +33,5 @@ OpenAIFactory::request(
                 'content' => 'Hello!',
             ],
         ],
-    ]
+    ],
 );

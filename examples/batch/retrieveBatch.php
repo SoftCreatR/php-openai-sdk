@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the retrieveBatch method with batch ID.
 OpenAIFactory::request(
     'retrieveBatch',
-    ['batch_id' => 'batch_abc123']
+    ['batch_id' => 'batch_abc123'],
 );

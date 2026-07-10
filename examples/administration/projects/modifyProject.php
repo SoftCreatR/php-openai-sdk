@@ -22,5 +22,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 OpenAIFactory::adminRequest(
     'modifyProject',
     ['project_id' => 'proj_abc'],
-    ['name' => 'Project DEF']
+    ['name' => 'Project DEF'],
 );

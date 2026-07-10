@@ -24,5 +24,5 @@ OpenAIFactory::adminRequest(
     [
         'project_id' => 'proj_abc',
         'user_id' => 'user_abc',
-    ]
+    ],
 );

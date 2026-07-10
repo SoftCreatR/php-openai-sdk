@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the createAdminApiKey using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'createAdminApiKey',
-    ['name' => 'New Admin Key']
+    ['name' => 'New Admin Key'],
 );

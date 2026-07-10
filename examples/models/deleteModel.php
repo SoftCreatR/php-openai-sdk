@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the deleteModel method with id.
 OpenAIFactory::request(
     'deleteModel',
-    ['model' => 'ft:gpt-4o-mini:acemeco:suffix:abc123']
+    ['model' => 'ft:gpt-4o-mini:acemeco:suffix:abc123'],
 );

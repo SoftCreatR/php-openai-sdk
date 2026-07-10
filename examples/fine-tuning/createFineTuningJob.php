@@ -24,5 +24,5 @@ OpenAIFactory::request(
     [
         'training_file' => 'file-BK7bzQj3FfZFXr7DbL6xJwfo',
         'model' => 'gpt-4o-mini',
-    ]
+    ],
 );

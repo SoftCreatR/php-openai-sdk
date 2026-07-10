@@ -22,7 +22,7 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 OpenAIFactory::request(
     'createResponse',
     [
-        'model' => 'gpt-4.1',
+        'model' => 'gpt-5.4-mini',
         'input' => 'Tell me a three sentence bedtime story about a unicorn.',
-    ]
+    ],
 );

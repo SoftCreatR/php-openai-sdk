@@ -3,13 +3,13 @@
   "description": "A powerful and easy-to-use PHP SDK for the OpenAI API, allowing seamless integration of advanced AI-powered features into your PHP projects.",
   "license": "ISC",
   "type": "library",
-  "version": "3.1.0",
+  "version": "4.0.0",
   "keywords": [
     "openai",
     "gpt",
-    "gpt-3",
-    "gpt-4",
-    "gpt-o1",
+    "gpt-5",
+    "responses-api",
+    "realtime-api",
     "artificial-intelligence",
     "machine-learning",
     "natural-language-processing",
@@ -27,17 +27,19 @@
   "require": {
     "php": ">=8.1",
     "ext-json": "*",
-    "psr/http-client": "*",
-    "psr/http-factory": "*",
-    "psr/http-message": "*"
+    "psr/http-client": "^1.0",
+    "psr/http-factory": "^1.0",
+    "psr/http-message": "^1.1 || ^2.0"
   },
   "require-dev": {
-    "friendsofphp/php-cs-fixer": ">=3",
-    "guzzlehttp/guzzle": ">=7",
-    "phpunit/phpunit": ">=10",
-    "vlucas/phpdotenv": "^5.6"
+    "friendsofphp/php-cs-fixer": "^3.95.12",
+    "guzzlehttp/guzzle": "^7.12.1",
+    "phpstan/phpstan": "^2.2.5",
+    "phpunit/phpunit": "^10.5.62 || ^11.5.50 || ^12.5.8",
+    "vlucas/phpdotenv": "^5.6.2"
   },
   "minimum-stability": "stable",
+  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "SoftCreatR\\OpenAI\\": "src/"
@@ -52,6 +54,7 @@
     "sort-packages": true
   },
   "scripts": {
+    "analyse": "phpstan analyse --no-progress",
     "phpcsf": "php-cs-fixer fix",
     "test": "phpunit"
   }

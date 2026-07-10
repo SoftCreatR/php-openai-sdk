@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the listFineTuningEvents method with id.
 OpenAIFactory::request(
     'listFineTuningCheckpoints',
-    ['fine_tuning_job_id' => 'ftjob-abc123']
+    ['fine_tuning_job_id' => 'ftjob-abc123'],
 );

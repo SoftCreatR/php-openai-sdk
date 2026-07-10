@@ -18,10 +18,11 @@
 
 require_once __DIR__ . '/../../OpenAIFactory.php';
 
-// Call the getCertificate method with cert ID, and options using the OPENAI_ADMIN_KEY.
+// Call the getCertificate method with a certificate ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'getCertificate',
-    ['cert_id' => 'cert_abc',
+    [
+        'certificate_id' => 'cert_abc',
         'include' => [
             'content',
         ],

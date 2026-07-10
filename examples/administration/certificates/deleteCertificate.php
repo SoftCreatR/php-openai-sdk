@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the deleteCertificate method with certificate ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'deleteCertificate',
-    ['certificate_id' => 'cert_abc']
+    ['certificate_id' => 'cert_abc'],
 );

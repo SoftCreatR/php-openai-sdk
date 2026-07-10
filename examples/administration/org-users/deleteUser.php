@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the deleteUser method with user ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'deleteUser',
-    ['user_id' => 'user_abc']
+    ['user_id' => 'user_abc'],
 );

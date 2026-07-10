@@ -21,5 +21,6 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the completeUpload method with upload ID.
 OpenAIFactory::request(
     'completeUpload',
-    ['upload_id' => 'upload_abc123']
+    ['upload_id' => 'upload_abc123'],
+    ['part_ids' => ['part_abc123']],
 );

@@ -22,5 +22,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 OpenAIFactory::adminRequest(
     'modifyUser',
     ['user_id' => 'user_abc'],
-    ['role' => 'owner']
+    ['role' => 'owner'],
 );

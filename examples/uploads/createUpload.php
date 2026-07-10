@@ -26,5 +26,5 @@ OpenAIFactory::request(
         'filename' => 'training_examples.jsonl',
         'bytes' => 2147483648,
         'mime_type' => 'text/jsonl',
-    ]
+    ],
 );

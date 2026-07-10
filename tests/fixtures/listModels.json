@@ -2,23 +2,16 @@
   "object": "list",
   "data": [
     {
-      "id": "model-id-0",
+      "id": "gpt-5.4-mini",
       "object": "model",
-      "created": 1686935002,
-      "owned_by": "organization-owner"
+      "created": 1772668800,
+      "owned_by": "system"
     },
     {
-      "id": "model-id-1",
+      "id": "text-embedding-3-small",
       "object": "model",
-      "created": 1686935002,
-      "owned_by": "organization-owner",
-    },
-    {
-      "id": "model-id-2",
-      "object": "model",
-      "created": 1686935002,
-      "owned_by": "openai"
-    },
-  ],
-  "object": "list"
+      "created": 1705948997,
+      "owned_by": "system"
+    }
+  ]
 }

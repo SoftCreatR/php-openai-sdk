@@ -27,5 +27,5 @@ OpenAIFactory::adminRequest(
     ],
     [
         'role' => 'owner',
-    ]
+    ],
 );

@@ -23,6 +23,6 @@ OpenAIFactory::adminRequest(
     'deleteProjectApiKey',
     [
         'project_id' => 'proj_abc',
-        'key_id' => 'key_abc',
-    ]
+        'api_key_id' => 'key_abc',
+    ],
 );

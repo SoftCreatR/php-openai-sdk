@@ -22,6 +22,7 @@ use Exception;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
@@ -29,6 +30,7 @@ use Psr\Http\Message\RequestInterface;
 use ReflectionException;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 use SoftCreatR\OpenAI\OpenAI;
+use Throwable;
 
 /**
  * @covers \SoftCreatR\OpenAI\Exception\OpenAIException
@@ -45,7 +47,7 @@ final class OpenAITest extends TestCase
     /**
      * The mocked HTTP client used for simulating API responses.
      */
-    private ClientInterface $mockedClient;
+    private ClientInterface&Stub $mockedClient;
 
     /**
      * API key for the OpenAI API.
@@ -73,7 +75,7 @@ final class OpenAITest extends TestCase
         parent::setUp();
 
         $psr17Factory = new HttpFactory();
-        $this->mockedClient = $this->createMock(ClientInterface::class);
+        $this->mockedClient = $this->createStub(ClientInterface::class);
 
         $this->openAI = new OpenAI(
             $psr17Factory,
@@ -82,20 +84,23 @@ final class OpenAITest extends TestCase
             $this->mockedClient,
             $this->apiKey,
             $this->organization,
-            $this->origin
+            $this->origin,
         );
     }
 
+
     /**
      * Tests that an InvalidArgumentException is thrown when the first argument is not an array.
+     *
+     * @throws OpenAIException
+     * @throws Throwable
      */
     public function testInvalidFirstArgumentInCall(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('First argument must be an array of parameters.');
 
-        /** @noinspection PhpParamsInspection */
-        $this->openAI->createChatCompletion('invalid_argument');
+        $this->openAI->__call('createChatCompletion', ['invalid_argument']);
     }
 
     /**
@@ -109,7 +114,7 @@ final class OpenAITest extends TestCase
         \file_put_contents($filePath, 'Dummy content');
 
         $this->sendRequestMock(function (RequestInterface $request) {
-            $body = (string)$request->getBody();
+            $body = (string) $request->getBody();
             $this->assertStringContainsString('multipart/form-data', $request->getHeaderLine('Content-Type'));
             $this->assertStringContainsString('Dummy content', $body);
 
@@ -157,7 +162,7 @@ final class OpenAITest extends TestCase
     public function testCallAPICatchesClientException(): void
     {
         $this->sendRequestMock(
-            static fn() => throw new class ('Client error', 0) extends Exception implements ClientExceptionInterface {}
+            static fn() => throw new class ('Client error', 0) extends Exception implements ClientExceptionInterface {},
         );
 
         $this->expectException(OpenAIException::class);
@@ -201,7 +206,7 @@ final class OpenAITest extends TestCase
             ],
             static function () {
                 // Streaming callback
-            }
+            },
         );
     }
 
@@ -233,10 +238,10 @@ final class OpenAITest extends TestCase
                 ],
                 'stream' => true,
             ],
-            fn() => $this->fail('Streaming callback should not be called on empty data.')
+            fn() => $this->fail('Streaming callback should not be called on empty data.'),
         );
 
-        $this->assertTrue(true); // If no exception is thrown, test passes
+        $this->addToAssertionCount(1);
     }
 
     /**
@@ -272,7 +277,7 @@ final class OpenAITest extends TestCase
             ],
             static function ($data) {
                 // Streaming callback
-            }
+            },
         );
     }
 
@@ -282,7 +287,7 @@ final class OpenAITest extends TestCase
     public function testHandleStreamingResponseCatchesClientException(): void
     {
         $this->sendRequestMock(
-            static fn() => throw new class ('Client error in streaming', 0) extends Exception implements ClientExceptionInterface {}
+            static fn() => throw new class ('Client error in streaming', 0) extends Exception implements ClientExceptionInterface {},
         );
 
         $this->expectException(OpenAIException::class);
@@ -302,7 +307,7 @@ final class OpenAITest extends TestCase
             ],
             static function () {
                 // Streaming callback
-            }
+            },
         );
     }
 
@@ -352,7 +357,7 @@ final class OpenAITest extends TestCase
             $psr17Factory,
             $mockedClient,
             $this->apiKey,
-            ''  // Empty organization
+            '',  // Empty organization
         );
 
         $mockedClient
@@ -361,7 +366,7 @@ final class OpenAITest extends TestCase
             ->willReturnCallback(function (RequestInterface $request) {
                 $this->assertFalse(
                     $request->hasHeader('OpenAI-Organization'),
-                    'OpenAI-Organization header should not be set when organization is empty.'
+                    'OpenAI-Organization header should not be set when organization is empty.',
                 );
 
                 return new Response(200, [], '{"success": true}');
@@ -376,6 +381,36 @@ final class OpenAITest extends TestCase
                 ],
             ],
         ]);
+    }
+
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    public function testCreateHeadersWithProjectScope(): void
+    {
+        $psr17Factory = new HttpFactory();
+        $mockedClient = $this->createMock(ClientInterface::class);
+        $openAIWithProject = new OpenAI(
+            requestFactory: $psr17Factory,
+            streamFactory: $psr17Factory,
+            uriFactory: $psr17Factory,
+            httpClient: $mockedClient,
+            apiKey: $this->apiKey,
+            organization: $this->organization,
+            project: 'proj_abc123',
+        );
+
+        $mockedClient
+            ->expects($this->once())
+            ->method('sendRequest')
+            ->willReturnCallback(function (RequestInterface $request) {
+                $this->assertSame($this->organization, $request->getHeaderLine('OpenAI-Organization'));
+                $this->assertSame('proj_abc123', $request->getHeaderLine('OpenAI-Project'));
+
+                return new Response(200, [], '{}');
+            });
+
+        $openAIWithProject->listModels();
     }
 
     /**
@@ -413,7 +448,7 @@ final class OpenAITest extends TestCase
             'purpose' => 'fine-tune',
         ];
 
-        $multipartStream = $reflectionMethod->invoke($this->openAI, $params, $boundary);
+        $multipartStream = (string) $reflectionMethod->invoke($this->openAI, $params, $boundary);
 
         $this->assertStringContainsString("--{$boundary}\r\n", $multipartStream);
         $this->assertStringContainsString('Content-Disposition: form-data; name="file"; filename', $multipartStream);
@@ -423,7 +458,7 @@ final class OpenAITest extends TestCase
     }
 
     /**
-     * Tests that createMultipartStream correctly base64 encodes 'data' parameter.
+     * Tests that createMultipartStream writes upload-part data as raw bytes.
      *
      * @throws ReflectionException
      */
@@ -439,11 +474,12 @@ final class OpenAITest extends TestCase
             'purpose' => 'fine-tune',
         ];
 
-        $multipartStream = $reflectionMethod->invoke($this->openAI, $params, $boundary);
+        $multipartStream = (string) $reflectionMethod->invoke($this->openAI, $params, $boundary);
 
         $this->assertStringContainsString("--{$boundary}\r\n", $multipartStream);
         $this->assertStringContainsString('Content-Disposition: form-data; name="data"; filename', $multipartStream);
-        $this->assertStringContainsString(\base64_encode('Binary content'), $multipartStream);
+        $this->assertStringContainsString('Binary content', $multipartStream);
+        $this->assertStringNotContainsString(\base64_encode('Binary content'), $multipartStream);
 
         \unlink($filePath);
     }
@@ -469,8 +505,43 @@ final class OpenAITest extends TestCase
                     ],
                 ],
             ]),
-            'chatCompletion.json'
+            'chatCompletion.json',
         );
+    }
+
+    /**
+     * The README has always documented body-first calls, so 4.0 must send this body.
+     */
+    public function testCreateChatCompletionSupportsBodyFirstCall(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertSame('POST', $request->getMethod());
+            $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
+            $this->assertSame(
+                ['model' => 'gpt-5.4-mini', 'messages' => [['role' => 'user', 'content' => 'Hello']]],
+                \json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR),
+            );
+
+            return new Response(200, ['Content-Type' => 'application/json'], '{}');
+        });
+
+        $this->openAI->createChatCompletion([
+            'model' => 'gpt-5.4-mini',
+            'messages' => [['role' => 'user', 'content' => 'Hello']],
+        ]);
+    }
+
+    public function testCallbackDoesNotDiscardANonStreamingResponse(): void
+    {
+        $response = new Response(200, ['Content-Type' => 'application/json'], '{"ok":true}');
+        $this->sendRequestMock(static fn() => $response);
+
+        $actual = $this->openAI->createChatCompletion(
+            ['model' => 'gpt-5.4-mini', 'messages' => []],
+            fn() => $this->fail('A callback must not run for a non-streaming response.'),
+        );
+
+        $this->assertSame($response, $actual);
     }
 
     /**
@@ -501,10 +572,9 @@ final class OpenAITest extends TestCase
                     ],
                     'stream' => true,
                 ],
-                $streamCallback
+                $streamCallback,
             ),
-            'chatCompletionStreaming.txt',
-            $streamCallback
+            $streamCallback,
         );
 
         $expectedOutput = 'Hello';
@@ -520,7 +590,7 @@ final class OpenAITest extends TestCase
     {
         $this->testApiCall(
             fn() => $this->openAI->listModels(),
-            'listModels.json'
+            'listModels.json',
         );
     }
 
@@ -533,7 +603,7 @@ final class OpenAITest extends TestCase
     {
         $this->testApiCall(
             fn() => $this->openAI->retrieveModel(['model' => 'gpt-3.5-turbo-instruct']),
-            'retrieveModel.json'
+            'retrieveModel.json',
         );
     }
 
@@ -552,7 +622,7 @@ final class OpenAITest extends TestCase
                 'file' => $filePath,
                 'purpose' => 'fine-tune',
             ]),
-            'uploadFile.json'
+            'uploadFile.json',
         );
 
         \unlink($filePath);
@@ -569,12 +639,142 @@ final class OpenAITest extends TestCase
         // Pass [ parameters, callback ]
         [$parameters, $opts, $streamCallback] = $reflection->invoke(
             $this->openAI,
-            [ ['foo' => 'bar'], $callback ]
+            [ ['foo' => 'bar'], $callback ],
         );
 
         $this->assertSame(['foo' => 'bar'], $parameters);
         $this->assertSame([], $opts);
         $this->assertSame($callback, $streamCallback);
+    }
+
+    /**
+     * @throws OpenAIException
+     * @throws Throwable
+     */
+    public function testRejectsMoreThanThreeEndpointArguments(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Endpoint calls accept at most three arguments.');
+
+        $this->openAI->__call('listModels', [[], [], static fn() => null, []]);
+    }
+
+    /**
+     * @throws OpenAIException
+     * @throws Throwable
+     */
+    public function testRejectsANonArrayNonCallableSecondArgument(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Second argument must be an array or callable.');
+
+        $this->openAI->__call('listModels', [[], 'invalid']);
+    }
+
+    /**
+     * @throws OpenAIException
+     * @throws Throwable
+     */
+    public function testRejectsAThirdArgumentWithoutASecondArray(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Third argument must be a stream callback.');
+
+        $this->openAI->__call('listModels', [[], static fn() => null, static fn() => null]);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testSplitsCombinedPathParametersFromTheRequestBody(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertSame('/v1/conversations/conv_123', $request->getUri()->getPath());
+            $this->assertSame(
+                ['metadata' => ['topic' => 'coverage']],
+                \json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR),
+            );
+
+            return new Response(200, [], '{}');
+        });
+
+        $this->openAI->updateConversation([
+            'conversation_id' => 'conv_123',
+            'metadata' => ['topic' => 'coverage'],
+        ]);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testRejectsInvalidCustomHeadersInTheFirstArgument(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('customHeaders must be an array.');
+
+        $this->openAI->listModels(['customHeaders' => 'invalid']);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testRejectsInvalidCustomHeadersInTheSecondArgument(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('customHeaders must be an array.');
+
+        $this->openAI->createChatCompletion([], ['customHeaders' => 'invalid']);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testMergesCustomHeadersFromBothArguments(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertSame('first', $request->getHeaderLine('X-First'));
+            $this->assertSame('second', $request->getHeaderLine('X-Second'));
+            $this->assertSame('second', $request->getHeaderLine('X-Shared'));
+            $this->assertArrayNotHasKey(
+                'customHeaders',
+                \json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR),
+            );
+
+            return new Response(200, [], '{}');
+        });
+
+        $this->openAI->createChatCompletion(
+            ['customHeaders' => ['X-First' => 'first', 'X-Shared' => 'first']],
+            [
+                'model' => 'gpt-5.4-mini',
+                'messages' => [],
+                'customHeaders' => ['X-Second' => 'second', 'X-Shared' => 'second'],
+            ],
+        );
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testInfersLegacyEndpointBodyTypes(): void
+    {
+        $reflection = TestHelper::getPrivateMethod($this->openAI, 'inferBodyType');
+
+        $this->assertSame('none', $reflection->invoke($this->openAI, 'GET', '/models'));
+        $this->assertSame('multipart', $reflection->invoke($this->openAI, 'POST', '/audio/transcriptions'));
+        $this->assertSame('json', $reflection->invoke($this->openAI, 'POST', '/responses'));
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    public function testCreatesLegacyJsonHeadersFromFalseMultipartFlag(): void
+    {
+        $reflection = TestHelper::getPrivateMethod($this->openAI, 'createHeaders');
+        $headers = $reflection->invoke($this->openAI, false);
+
+        $this->assertIsArray($headers);
+        $this->assertSame('application/json', $headers['Content-Type']);
     }
 
     /**
@@ -594,29 +794,28 @@ final class OpenAITest extends TestCase
 
         $response = $this->openAI->listModels(
             ['foo' => 'bar'],
-            ['baz' => 'qux']
+            ['baz' => 'qux'],
         );
 
         $this->assertEquals(200, $response->getStatusCode());
     }
 
     /**
-     * @throws ReflectionException
-     *
-     * Verifies that if a multipart-key value is itself an array,
-     * isMultipartRequest() returns false.
+     * Custom headers on GET requests must not be serialized as query parameters.
      */
-    public function testIsMultipartRequestReturnsFalseWhenValueIsArray(): void
+    public function testGetRequestExtractsCustomHeaders(): void
     {
-        $reflection = TestHelper::getPrivateMethod($this->openAI, 'isMultipartRequest');
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertSame('test-request-id', $request->getHeaderLine('X-Client-Request-Id'));
+            $this->assertStringNotContainsString('customHeaders', $request->getUri()->getQuery());
 
-        // 'file' key is present, but its value is an array → should bail out early
-        $result = $reflection->invoke(
-            $this->openAI,
-            [ 'file' => ['not', 'a', 'string'] ]
-        );
+            return new Response(200, [], '{}');
+        });
 
-        $this->assertFalse($result);
+        $this->openAI->listModels([
+            'limit' => 10,
+            'customHeaders' => ['X-Client-Request-Id' => 'test-request-id'],
+        ]);
     }
 
     /**
@@ -647,7 +846,7 @@ final class OpenAITest extends TestCase
 
         self::assertNotNull($response, 'Response should not be null.');
         self::assertEquals(200, $response->getStatusCode());
-        self::assertEquals($fakeResponseBody, (string)$response->getBody());
+        self::assertEquals($fakeResponseBody, (string) $response->getBody());
     }
 
     /**
@@ -657,14 +856,13 @@ final class OpenAITest extends TestCase
      * and utilizes the provided stream callback to process the response.
      *
      * @param callable $apiCall       The API call to test.
-     * @param string   $responseFile  The path to the file containing the expected streaming response.
      * @param callable $streamCallback The callback function to handle streaming data.
      *
      * @throws Exception
      */
-    private function testApiCallWithStreaming(callable $apiCall, string $responseFile, callable $streamCallback): void
+    private function testApiCallWithStreaming(callable $apiCall, callable $streamCallback): void
     {
-        $fakeResponseContent = TestHelper::loadResponseFromFile($responseFile);
+        $fakeResponseContent = TestHelper::loadResponseFromFile('chatCompletionStreaming.txt');
         $fakeChunks = \explode("\n", \trim($fakeResponseContent));
         $stream = \fopen('php://temp', 'rb+');
 
@@ -694,7 +892,6 @@ final class OpenAITest extends TestCase
     private function sendRequestMock(callable $responseCallback): void
     {
         $this->mockedClient
-            ->expects($this->once())
             ->method('sendRequest')
             ->willReturnCallback($responseCallback);
     }

@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the createProject method with options using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'createProject',
-    ['name' => 'My Project']
+    ['name' => 'My Project'],
 );

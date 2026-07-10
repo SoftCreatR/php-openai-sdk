@@ -1,6 +1,6 @@
 {
-  "id": "gpt-3.5-turbo-instruct",
+  "id": "gpt-5.4-mini",
   "object": "model",
-  "created": 1686935002,
-  "owned_by": "openai"
+  "created": 1772668800,
+  "owned_by": "system"
 }

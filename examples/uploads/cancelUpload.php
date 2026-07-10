@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the cancelUpload method with upload ID.
 OpenAIFactory::request(
     'cancelUpload',
-    ['upload_id' => 'upload_abc123']
+    ['upload_id' => 'upload_abc123'],
 );

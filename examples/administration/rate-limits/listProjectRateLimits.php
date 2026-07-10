@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the listProjectRateLimits method with project_id using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'listProjectRateLimits',
-    ['project_id' => 'proj_abc']
+    ['project_id' => 'proj_abc'],
 );

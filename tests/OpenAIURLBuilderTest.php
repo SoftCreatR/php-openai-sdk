@@ -82,4 +82,73 @@ final class OpenAIURLBuilderTest extends TestCase
         $uriFactory = new HttpFactory();
         OpenAIURLBuilder::createUrl($uriFactory, 'retrieveModel', ['model' => ['not', 'scalar']]);
     }
+
+    public function testRegistryContainsCurrentSupportedSurfaceOnly(): void
+    {
+        $endpoints = OpenAIURLBuilder::getEndpoints();
+
+        $this->assertArrayNotHasKey('createAssistant', $endpoints);
+        $this->assertArrayNotHasKey('createImageVariation', $endpoints);
+
+        $routes = [];
+
+        foreach ($endpoints as $name => $endpoint) {
+            $this->assertContains($endpoint['method'], ['GET', 'POST', 'DELETE'], $name);
+            $this->assertContains($endpoint['body'], ['none', 'json', 'multipart'], $name);
+            $this->assertNotSame('', $endpoint['category'], $name);
+
+            if ($endpoint['body'] === 'multipart') {
+                $this->assertNotEmpty($endpoint['fileFields'] ?? [], $name);
+            }
+
+            $route = $endpoint['method'] . ' ' . $endpoint['path'];
+            $this->assertArrayNotHasKey($route, $routes, "Duplicate route registered by {$name}.");
+            $routes[$route] = true;
+
+            $this->assertFalse(\str_starts_with($endpoint['path'], '/assistants'));
+            $this->assertFalse(\str_starts_with($endpoint['path'], '/threads'));
+            $this->assertFalse(\str_starts_with($endpoint['path'], '/evals'));
+            $this->assertFalse(\str_starts_with($endpoint['path'], '/videos'));
+            $this->assertNotContains($endpoint['path'], [
+                '/completions',
+                '/images/variations',
+                '/realtime/sessions',
+                '/realtime/transcription_sessions',
+            ]);
+        }
+
+        $this->assertSame('POST', $endpoints['modifyProjectRateLimit']['method']);
+        $this->assertTrue($endpoints['createFineTuningJob']['deprecated']);
+    }
+
+    public function testCreateUrlEncodesPathSegments(): void
+    {
+        $uri = OpenAIURLBuilder::createUrl(
+            new HttpFactory(),
+            'retrieveModel',
+            ['model' => 'custom/model name'],
+        );
+
+        $this->assertSame('/v1/models/custom%2Fmodel%20name', $uri->getPath());
+    }
+
+    public function testCreateUrlSupportsAbsoluteBaseUrlAndExplicitBasePath(): void
+    {
+        $uri = OpenAIURLBuilder::createUrl(
+            new HttpFactory(),
+            'listModels',
+            [],
+            'http://localhost:8080/openai/v1',
+        );
+        $overridden = OpenAIURLBuilder::createUrl(
+            new HttpFactory(),
+            'listModels',
+            [],
+            'http://localhost:8080/openai/v1',
+            '/compatible/v1',
+        );
+
+        $this->assertSame('http://localhost:8080/openai/v1/models', (string) $uri);
+        $this->assertSame('http://localhost:8080/compatible/v1/models', (string) $overridden);
+    }
 }

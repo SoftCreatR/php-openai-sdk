@@ -31,5 +31,5 @@ OpenAIFactory::request(
                 ],
             ],
         ],
-    ]
+    ],
 );

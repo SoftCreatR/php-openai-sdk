@@ -28,7 +28,7 @@ $response = OpenAIFactory::request(
         'voice' => 'alloy',
     ],
     null,
-    true
+    true,
 );
 
 \file_put_contents(__DIR__ . '/fixtures/speech.mp3', $response);

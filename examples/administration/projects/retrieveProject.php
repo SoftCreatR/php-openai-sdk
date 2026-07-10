@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the retrieveProject method with project ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'retrieveProject',
-    ['project_id' => 'proj_abc']
+    ['project_id' => 'proj_abc'],
 );

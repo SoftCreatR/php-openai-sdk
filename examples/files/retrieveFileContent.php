@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the retrieveFileContent method with id.
 OpenAIFactory::request(
     'retrieveFileContent',
-    ['file_id' => 'file-abc123']
+    ['file_id' => 'file-abc123'],
 );

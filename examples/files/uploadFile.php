@@ -24,5 +24,5 @@ OpenAIFactory::request(
     [
         'file' => __DIR__ . '/fixtures/mydata.jsonl',
         'purpose' => 'fine-tune',
-    ]
+    ],
 );

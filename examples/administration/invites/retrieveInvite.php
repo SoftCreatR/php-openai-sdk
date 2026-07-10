@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the retrieveInvite method with invite ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'retrieveInvite',
-    ['invite_id' => 'invite-abc123']
+    ['invite_id' => 'invite-abc123'],
 );

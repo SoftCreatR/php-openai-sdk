@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the deleteFile method with id.
 OpenAIFactory::request(
     'deleteFile',
-    ['file_id' => 'file-abc123']
+    ['file_id' => 'file-abc123'],
 );

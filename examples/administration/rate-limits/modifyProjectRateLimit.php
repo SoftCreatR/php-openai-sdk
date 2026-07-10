@@ -24,5 +24,5 @@ OpenAIFactory::adminRequest(
     [
         'project_id' => 'proj_abc',
         'rate_limit_id' => 'rl_xxx',
-    ]
+    ],
 );

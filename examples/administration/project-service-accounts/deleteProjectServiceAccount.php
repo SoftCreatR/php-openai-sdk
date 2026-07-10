@@ -24,5 +24,5 @@ OpenAIFactory::adminRequest(
     [
         'project_id' => 'proj_abc',
         'service_account_id' => 'svc_acct_abc',
-    ]
+    ],
 );

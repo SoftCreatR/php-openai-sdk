@@ -27,5 +27,5 @@ OpenAIFactory::adminRequest(
             'cert_abc',
             'cert_def',
         ],
-    ]
+    ],
 );

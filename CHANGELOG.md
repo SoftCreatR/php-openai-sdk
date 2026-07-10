@@ -5,6 +5,73 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-10
+
+Version 4 realigns the SDK with the current OpenAI API reference and intentionally removes APIs that are legacy,
+already unavailable, or scheduled for shutdown. The endpoint catalog contains 223 supported routes.
+
+### Added
+
+- Added 119 SDK methods for the current Responses, Conversations, ChatKit, Containers, Skills, Realtime REST control,
+  custom voice, voice consent, fine-tuning transition, and organization/project administration APIs.
+- Added one PHP example for every registered SDK method and a complete [`README.md`](README.md#supported-methods)
+  catalog containing the HTTP verb, route, request encoding, deprecation state, and example link.
+- Added `OpenAI::request()` for runtime-selected endpoint names and explicit custom headers.
+- Added `OpenAI-Project` request scoping through the optional final `$project` constructor argument.
+- Added `WebhookVerifier`, `WebhookException`, and `InvalidWebhookSignatureException` for Standard Webhooks signature
+  verification, replay protection, secret rotation, and verified JSON decoding.
+- Added structured `OpenAIException` metadata through `getError()`, `getRequestId()`, `getResponseBody()`, and
+  `getResponseHeaders()`.
+- Added full absolute base-URL support while retaining hostname and `basePath` configuration.
+- Added magic-method annotations so IDEs and static analyzers discover all registered endpoint methods.
+- Added CI coverage for PHP 8.1, 8.2, 8.3, 8.4, and 8.5, plus PHPStan and dependency auditing.
+
+### Changed
+
+- Set the package version to `4.0.0` and require PHP 8.1 or newer.
+- Fixed the documented body-first calling convention. Calls such as `createResponse($body)` now send the array as the
+  JSON body. The v3 two-array form `method($pathOrQuery, $body)` remains supported.
+- Path-and-body calls may now use one combined array; fields matching route placeholders are split into the URL.
+- URL path values are encoded with `rawurlencode()` and query strings use RFC 3986 encoding.
+- Corrected `modifyProjectRateLimit` from `GET` to `POST`.
+- Corrected the required path keys from `cert_id` to `certificate_id` for `getCertificate`, and from `key_id` to
+  `api_key_id` for `retrieveProjectApiKey` and `deleteProjectApiKey`.
+- Replaced the line-oriented streaming parser with a chunk-safe SSE decoder. A callback no longer discards an ordinary
+  JSON response when streaming was not requested.
+- Replaced in-memory/base64 multipart assembly with raw, streamed file copies and endpoint-specific upload fields.
+- Updated examples to current model families such as `gpt-5.4-mini`, `gpt-image-2`, and
+  `text-embedding-3-small`.
+- Updated PSR, Guzzle, PHPUnit, PHPStan, PHP CS Fixer, and dotenv dependency constraints to maintained versions.
+- Moved vector-store examples from `examples/assistants/` to their top-level endpoint directories.
+
+### Deprecated
+
+- The 13 self-serve fine-tuning methods remain registered for eligible existing customers but are marked deprecated.
+  OpenAI has announced staged access restrictions and an end to new fine-tuning job creation for active existing
+  customers on January 6, 2027.
+
+### Removed
+
+- Removed `createImageVariation`; the endpoint depended on DALL-E 2, which OpenAI removed on May 12, 2026.
+- Removed these Assistants API methods in favor of Responses and Conversations:
+  `createAssistant`, `listAssistants`, `retrieveAssistant`, `modifyAssistant`, `deleteAssistant`, `createThread`,
+  `retrieveThread`, `modifyThread`, `deleteThread`, `createMessage`, `listMessages`, `retrieveMessage`,
+  `modifyMessage`, `deleteMessage`, `createRun`, `createThreadAndRun`, `listRuns`, `retrieveRun`, `modifyRun`,
+  `submitToolOutputsToRun`, `cancelRun`, `listRunSteps`, and `retrieveRunStep`.
+- Deliberately omitted classic Completions, Realtime Beta session creation, Evals, Videos, and other endpoints already
+  classified as legacy or scheduled for shutdown by OpenAI.
+- Removed all `OpenAI-Beta` headers from examples.
+
+### Migration
+
+- Replace Assistants/Threads/Runs/Messages workflows with `createResponse` and the Conversations methods.
+- Replace `createImageVariation` with `createImage` or `createImageEdit` using `gpt-image-2`.
+- Rename the three corrected path parameters described above.
+- Keep existing two-array endpoint calls unchanged, or adopt the preferred body-first/combined-array forms documented
+  in [`README.md`](README.md).
+- Review the complete method list in [`README.md`](README.md#supported-methods) and OpenAI's
+  [deprecation schedule](https://developers.openai.com/api/docs/deprecations).
+
 ## [3.1.0] - 2025-04-17
 
 ### Added

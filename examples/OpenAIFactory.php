@@ -23,6 +23,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Dotenv\Dotenv;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\HttpFactory;
+use SoftCreatR\OpenAI\Exception\OpenAIException;
 use SoftCreatR\OpenAI\OpenAI;
 use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
@@ -44,13 +45,10 @@ final class OpenAIFactory
 
     /**
      * Create an OpenAI client.
-     *
-     * @param string $apiKey
-     * @return OpenAI
      */
     public static function create(
         #[SensitiveParameter]
-        string $apiKey = ''
+        string $apiKey = '',
     ): OpenAI {
         $psr17Factory = new HttpFactory();
         $httpClient = new Client(['stream' => true]);
@@ -64,6 +62,7 @@ final class OpenAIFactory
             organization: $_ENV['OPENAI_ORGANIZATION_ID'] ?? '',
             origin: $_ENV['OPENAI_API_ORIGIN'] ?? '',
             basePath: $_ENV['OPENAI_API_BASE_PATH'] ?? '',
+            project: $_ENV['OPENAI_PROJECT_ID'] ?? '',
         );
     }
 
@@ -83,17 +82,25 @@ final class OpenAIFactory
         array $options = [],
         ?callable $streamCallback = null,
         bool $returnResponse = false,
-        bool $useAdminKey = false
-    ): mixed {
-        $keyName = $useAdminKey ? 'OPENAI_ADMIN_KEY' : 'OPENAI_API_KEY';
-        $openAI = self::create($_ENV[$keyName] ?? '');
-
+        bool $useAdminKey = false,
+    ): ?string {
         try {
             $endpoint = OpenAIURLBuilder::getEndpoint($method);
-            $path = $endpoint['path'];
-            $hasPlaceholders = (bool)\preg_match('/\{\w+}/', $path);
+            $useAdminKey = $useAdminKey || ($endpoint['admin'] ?? false);
+            $keyName = $useAdminKey ? 'OPENAI_ADMIN_KEY' : 'OPENAI_API_KEY';
+            $apiKey = $_ENV[$keyName] ?? '';
 
-            if ($hasPlaceholders) {
+            if ($apiKey === '') {
+                throw new RuntimeException("Set {$keyName} in the project .env file before running this example.");
+            }
+
+            $openAI = self::create($apiKey);
+            $hasPlaceholders = (bool) \preg_match('/\{[A-Za-z_]\w*}/', $endpoint['path']);
+
+            if ($endpoint['body'] === 'none') {
+                $urlParams = $parameters + $options;
+                $bodyOpts = [];
+            } elseif ($hasPlaceholders) {
                 $urlParams = $parameters;
                 $bodyOpts = $options;
             } else {
@@ -102,12 +109,16 @@ final class OpenAIFactory
             }
 
             if ($streamCallback !== null) {
-                $openAI->{$method}($urlParams, $bodyOpts, $streamCallback);
+                $openAI->request($method, $urlParams, $bodyOpts, $streamCallback);
 
                 return null;
             }
 
-            $response = $openAI->{$method}($urlParams, $bodyOpts);
+            $response = $openAI->request($method, $urlParams, $bodyOpts);
+
+            if ($response === null) {
+                return null;
+            }
 
             if ($returnResponse) {
                 return $response->getBody()->getContents();
@@ -125,8 +136,14 @@ final class OpenAIFactory
                 echo "Received response with Content-Type: {$contentType}\n";
                 echo $body;
             }
-        } catch (Exception $e) {
-            echo "Error: {$e->getMessage()}\n";
+        } catch (OpenAIException $exception) {
+            echo "OpenAI API error: {$exception->getMessage()}\n";
+
+            if ($exception->getRequestId() !== null) {
+                echo "Request ID: {$exception->getRequestId()}\n";
+            }
+        } catch (\Throwable $exception) {
+            echo "Error: {$exception->getMessage()}\n";
         }
 
         return null;
@@ -140,15 +157,15 @@ final class OpenAIFactory
         array $parameters = [],
         array $options = [],
         ?callable $streamCallback = null,
-        bool $returnResponse = false
-    ): mixed {
+        bool $returnResponse = false,
+    ): ?string {
         return self::request(
             $method,
             $parameters,
             $options,
             $streamCallback,
             $returnResponse,
-            true
+            true,
         );
     }
 }

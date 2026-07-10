@@ -25,5 +25,5 @@ OpenAIFactory::adminRequest(
     [
         'user_id' => 'user_abc',
         'role' => 'member',
-    ]
+    ],
 );

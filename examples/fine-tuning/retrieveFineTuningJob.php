@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the retrieveFineTuningJob method with id.
 OpenAIFactory::request(
     'retrieveFineTuningJob',
-    ['fine_tuning_job_id' => 'ft-AF1WoRqd3aJAHsqc9NY7iL8F']
+    ['fine_tuning_job_id' => 'ft-AF1WoRqd3aJAHsqc9NY7iL8F'],
 );

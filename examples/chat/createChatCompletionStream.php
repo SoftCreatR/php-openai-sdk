@@ -23,7 +23,7 @@ OpenAIFactory::request(
     'createChatCompletion',
     [],
     [
-        'model' => 'gpt-4o-mini',
+        'model' => 'gpt-5.4-mini',
         'messages' => [
             [
                 'role' => 'user',
@@ -36,5 +36,5 @@ OpenAIFactory::request(
         if (isset($data['choices'][0]['delta']['content'])) {
             echo $data['choices'][0]['delta']['content'];
         }
-    }
+    },
 );

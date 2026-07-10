@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the retrieveAdminApiKey method with key ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'retrieveAdminApiKey',
-    ['key_id' => 'key_abc']
+    ['key_id' => 'key_abc'],
 );

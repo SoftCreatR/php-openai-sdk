@@ -24,5 +24,5 @@ OpenAIFactory::request(
     [
         'model' => 'omni-moderation-latest',
         'input' => 'I want to kill them.',
-    ]
+    ],
 );

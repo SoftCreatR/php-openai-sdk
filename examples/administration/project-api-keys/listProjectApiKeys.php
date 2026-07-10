@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the listProjectApiKeys method with project ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'listProjectApiKeys',
-    ['project_id' => 'proj_abc']
+    ['project_id' => 'proj_abc'],
 );

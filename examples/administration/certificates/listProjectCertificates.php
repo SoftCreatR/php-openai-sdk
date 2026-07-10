@@ -21,5 +21,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 // Call the listProjectCertificates method with project ID using the OPENAI_ADMIN_KEY.
 OpenAIFactory::adminRequest(
     'listProjectCertificates',
-    ['project_id' => 'proj_abc']
+    ['project_id' => 'proj_abc'],
 );

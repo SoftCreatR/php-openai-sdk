@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the getChatMessages method with completion ID.
 OpenAIFactory::request(
     'getChatMessages',
-    ['completion_id' => 'chat_abc123']
+    ['completion_id' => 'chat_abc123'],
 );

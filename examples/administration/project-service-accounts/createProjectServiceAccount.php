@@ -22,5 +22,5 @@ require_once __DIR__ . '/../../OpenAIFactory.php';
 OpenAIFactory::adminRequest(
     'createProjectServiceAccount',
     ['project_id' => 'proj_abc'],
-    ['name' => 'Production App']
+    ['name' => 'Production App'],
 );

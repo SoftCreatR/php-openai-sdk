@@ -18,12 +18,12 @@
 
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// Call the createChatCompletion method with specific options for GPT-4 with Vision support.
+// Call the createChatCompletion method with a current multimodal model.
 OpenAIFactory::request(
     'createChatCompletion',
     [
-        'model' => 'gpt-4o',
-        'max_tokens' => 300,
+        'model' => 'gpt-5.4-mini',
+        'max_completion_tokens' => 300,
         'messages' => [
             [
                 'role' => 'user',
@@ -41,5 +41,5 @@ OpenAIFactory::request(
                 ],
             ],
         ],
-    ]
+    ],
 );

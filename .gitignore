@@ -4,3 +4,4 @@ vendor/
 .idea/
 /coverage.xml
 .env
+/tools/

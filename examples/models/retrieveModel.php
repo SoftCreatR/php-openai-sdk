@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the retrieveModel method with id.
 OpenAIFactory::request(
     'retrieveModel',
-    ['model' => 'gpt-3.5-turbo-instruct']
+    ['model' => 'gpt-5.4-mini'],
 );

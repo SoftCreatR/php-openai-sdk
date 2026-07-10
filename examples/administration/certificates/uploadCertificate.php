@@ -24,5 +24,5 @@ OpenAIFactory::adminRequest(
     [
         'name' => 'My Example Certificate',
         'certificate' => "-----BEGIN CERTIFICATE-----\\nMIIDeT...\\n-----END CERTIFICATE-----",
-    ]
+    ],
 );

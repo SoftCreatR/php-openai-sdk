@@ -22,9 +22,9 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 OpenAIFactory::request(
     'createImage',
     [
-        'model' => 'dall-e-3',
+        'model' => 'gpt-image-2',
         'prompt' => 'A cute baby sea otter',
         'n' => 1,
         'size' => '1024x1024',
-    ]
+    ],
 );

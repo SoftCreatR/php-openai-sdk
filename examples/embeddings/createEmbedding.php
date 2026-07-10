@@ -23,7 +23,7 @@ OpenAIFactory::request(
     'createEmbedding',
     [
         'input' => 'The food was delicious and the waiter...',
-        'model' => 'text-embedding-ada-002',
+        'model' => 'text-embedding-3-small',
         'encoding_format' => 'float',
-    ]
+    ],
 );

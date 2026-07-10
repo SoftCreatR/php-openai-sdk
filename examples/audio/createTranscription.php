@@ -24,5 +24,5 @@ OpenAIFactory::request(
     [
         'file' => __DIR__ . '/fixtures/audio.mp3',
         'model' => 'whisper-1',
-    ]
+    ],
 );

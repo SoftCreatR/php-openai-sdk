@@ -21,5 +21,5 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 // Call the cancelFineTuning method with id.
 OpenAIFactory::request(
     'cancelFineTuning',
-    ['fine_tuning_job_id' => 'ftjob-abc123']
+    ['fine_tuning_job_id' => 'ftjob-abc123'],
 );

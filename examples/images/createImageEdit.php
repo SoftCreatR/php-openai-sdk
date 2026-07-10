@@ -22,10 +22,11 @@ require_once __DIR__ . '/../OpenAIFactory.php';
 OpenAIFactory::request(
     'createImageEdit',
     [
+        'model' => 'gpt-image-2',
         'image' => __DIR__ . '/fixtures/otter.png',
         'mask' => __DIR__ . '/fixtures/mask.png',
         'prompt' => 'A cute baby sea otter wearing a beret',
         'n' => 2,
-        'size' => '256x256',
-    ]
+        'size' => '1024x1024',
+    ],
 );

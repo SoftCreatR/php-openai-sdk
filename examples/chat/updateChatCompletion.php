@@ -26,5 +26,5 @@ OpenAIFactory::request(
         'metadata' => [
             'foo' => 'bar',
         ],
-    ]
+    ],
 );

@@ -24,5 +24,5 @@ OpenAIFactory::request(
     [
         'file' => __DIR__ . '/fixtures/german.m4a',
         'model' => 'whisper-1',
-    ]
+    ],
 );
