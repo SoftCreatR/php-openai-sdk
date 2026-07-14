@@ -29,6 +29,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use ReflectionException;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
+use SoftCreatR\OpenAI\Http\StreamingClientInterface;
 use SoftCreatR\OpenAI\OpenAI;
 use Throwable;
 
@@ -579,6 +580,46 @@ final class OpenAITest extends TestCase
 
         $expectedOutput = 'Hello';
         $this->assertEquals($expectedOutput, $output);
+    }
+
+    /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    public function testStreamingRequestUsesStreamingTransportWhenAvailable(): void
+    {
+        $psr17Factory = new HttpFactory();
+        $client = $this->createMock(StreamingClientInterface::class);
+        $response = new Response(
+            200,
+            ['Content-Type' => 'text/event-stream'],
+            "data: {\"value\":\"streamed\"}\n\n",
+        );
+        $client->expects($this->once())
+            ->method('sendStreamingRequest')
+            ->willReturn($response);
+        $client->expects($this->never())
+            ->method('sendRequest');
+
+        $openAI = new OpenAI(
+            $psr17Factory,
+            $psr17Factory,
+            $psr17Factory,
+            $client,
+            $this->apiKey,
+            $this->organization,
+            $this->origin,
+        );
+        $events = [];
+
+        $actual = $openAI->createChatCompletion(
+            ['model' => 'gpt-5.6-terra', 'messages' => [], 'stream' => true],
+            static function (array $event) use (&$events): void {
+                $events[] = $event;
+            },
+        );
+
+        $this->assertSame($response, $actual);
+        $this->assertSame([['value' => 'streamed']], $events);
     }
 
     /**

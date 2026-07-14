@@ -35,6 +35,7 @@ use SensitiveParameter;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 use SoftCreatR\OpenAI\Http\MultipartBodyBuilder;
 use SoftCreatR\OpenAI\Http\ServerSentEventDecoder;
+use SoftCreatR\OpenAI\Http\StreamingClientInterface;
 use Throwable;
 
 use const JSON_THROW_ON_ERROR;
@@ -519,7 +520,7 @@ class OpenAI
         array $body,
         ?callable $streamCallback,
         array $customHeaders,
-    ): ?ResponseInterface {
+    ): ResponseInterface {
         $bodyType = $endpoint['body'] ?? $this->inferBodyType($method, $endpoint['path'] ?? $uri->getPath());
         $boundary = $body !== [] && $bodyType === 'multipart' ? $this->generateMultipartBoundary() : null;
         $requestBody = $this->createRequestBody($bodyType, $body, $boundary, $endpoint['fileFields'] ?? []);
@@ -538,8 +539,12 @@ class OpenAI
             $request = $request->withBody($requestBody);
         }
 
+        $isStreamingRequest = ($body['stream'] ?? false) === true || ($body['stream_format'] ?? null) === 'sse';
+
         try {
-            $response = $this->httpClient->sendRequest($request);
+            $response = $isStreamingRequest && $this->httpClient instanceof StreamingClientInterface
+                ? $this->httpClient->sendStreamingRequest($request)
+                : $this->httpClient->sendRequest($request);
         } catch (ClientExceptionInterface $exception) {
             throw new OpenAIException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
@@ -547,12 +552,10 @@ class OpenAI
         $this->throwForErrorResponse($response);
 
         $isEventStream = \str_contains(\strtolower($response->getHeaderLine('Content-Type')), 'text/event-stream');
-        $streamRequested = ($body['stream'] ?? false) === true || ($body['stream_format'] ?? null) === 'sse';
+        $streamRequested = $isStreamingRequest;
 
         if ($streamCallback !== null && ($streamRequested || $isEventStream)) {
             (new ServerSentEventDecoder())->decode($response->getBody(), $streamCallback);
-
-            return null;
         }
 
         return $response;

@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.2] - 2026-07-14
+
+### Added
+
+- Added `StreamingClientInterface` for PSR-18 transports that can expose an HTTP response body before the complete
+  response has been received.
+
+### Changed
+
+- Streaming endpoint calls now use `StreamingClientInterface::sendStreamingRequest()` when the configured transport
+  supports it. Existing `ClientInterface` implementations continue to use `sendRequest()` unchanged.
+- Improved SSE decoding for progressively delivered responses. The decoder consumes bytes already available from the
+  stream and otherwise waits for the next byte, preventing small SSE frames from being delayed until a larger buffer
+  is filled.
+
 ## [4.0.0] - 2026-07-10
 
 Version 4 realigns the SDK with the current OpenAI API reference and intentionally removes APIs that are legacy,

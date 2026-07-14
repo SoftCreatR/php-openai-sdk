@@ -26,6 +26,8 @@ use const JSON_THROW_ON_ERROR;
 
 final class ServerSentEventDecoder
 {
+    private const CHUNK_SIZE = 8_192;
+
     /**
      * @param callable(mixed): void $callback
      *
@@ -80,7 +82,7 @@ final class ServerSentEventDecoder
         };
 
         while (!$stream->eof()) {
-            $chunk = $stream->read(8192);
+            $chunk = $stream->read($this->getReadLength($stream));
 
             if ($chunk === '') {
                 // PSR-7 permits non-blocking streams to make no progress before EOF.
@@ -105,6 +107,20 @@ final class ServerSentEventDecoder
         }
 
         $dispatch();
+    }
+
+    private function getReadLength(StreamInterface $stream): int
+    {
+        $unreadBytes = $stream->getMetadata('unread_bytes');
+
+        if (\is_int($unreadBytes) && $unreadBytes > 0) {
+            return \min($unreadBytes, self::CHUNK_SIZE);
+        }
+
+        // A streaming HTTP socket may only have a small SSE frame available.
+        // Reading one byte waits for that frame without waiting for an arbitrary
+        // large buffer to fill; subsequent reads consume all reported bytes.
+        return 1;
     }
 
     /**
