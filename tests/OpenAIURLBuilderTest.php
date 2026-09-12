@@ -25,6 +25,8 @@ use ReflectionClass;
 use ReflectionException;
 use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
+use const PHP_QUERY_RFC3986;
+
 /**
  * @covers \SoftCreatR\OpenAI\OpenAIURLBuilder
  */
@@ -89,6 +91,8 @@ final class OpenAIURLBuilderTest extends TestCase
 
         $this->assertArrayNotHasKey('createAssistant', $endpoints);
         $this->assertArrayNotHasKey('createImageVariation', $endpoints);
+        $this->assertArrayNotHasKey('createRealtimeSession', $endpoints);
+        $this->assertArrayNotHasKey('createRealtimeTranscriptionSession', $endpoints);
 
         $routes = [];
 
@@ -98,27 +102,44 @@ final class OpenAIURLBuilderTest extends TestCase
             $this->assertNotSame('', $endpoint['category'], $name);
 
             if ($endpoint['body'] === 'multipart') {
-                $this->assertNotEmpty($endpoint['fileFields'] ?? [], $name);
+                $this->assertArrayHasKey('fileFields', $endpoint, $name);
             }
 
-            $route = $endpoint['method'] . ' ' . $endpoint['path'];
+            if (isset($endpoint['headers'])) {
+                $this->assertNotSame([], $endpoint['headers'], $name);
+            }
+
+            if (isset($endpoint['query'])) {
+                $this->assertNotSame([], $endpoint['query'], $name);
+            }
+
+            if (isset($endpoint['streaming'])) {
+                $this->assertTrue($endpoint['streaming'], $name);
+            }
+
+            $query = isset($endpoint['query'])
+                ? '?' . \http_build_query($endpoint['query'], '', '&', PHP_QUERY_RFC3986)
+                : '';
+            $route = $endpoint['method'] . ' ' . $endpoint['path'] . $query;
             $this->assertArrayNotHasKey($route, $routes, "Duplicate route registered by {$name}.");
             $routes[$route] = true;
 
             $this->assertFalse(\str_starts_with($endpoint['path'], '/assistants'));
             $this->assertFalse(\str_starts_with($endpoint['path'], '/threads'));
-            $this->assertFalse(\str_starts_with($endpoint['path'], '/evals'));
-            $this->assertFalse(\str_starts_with($endpoint['path'], '/videos'));
             $this->assertNotContains($endpoint['path'], [
                 '/completions',
                 '/images/variations',
-                '/realtime/sessions',
-                '/realtime/transcription_sessions',
             ]);
         }
 
         $this->assertSame('POST', $endpoints['modifyProjectRateLimit']['method']);
         $this->assertTrue($endpoints['createFineTuningJob']['deprecated']);
+        $this->assertSame(['OpenAI-Beta' => 'agents=v1'], $endpoints['createAgent']['headers']);
+        $this->assertSame(['beta' => 'true'], $endpoints['createBetaResponse']['query']);
+        $this->assertTrue($endpoints['streamAgentSessionEvents']['streaming']);
+        $this->assertArrayHasKey('createEval', $endpoints);
+        $this->assertArrayHasKey('createLiveSession', $endpoints);
+        $this->assertArrayHasKey('createVideo', $endpoints);
     }
 
     public function testCreateUrlEncodesPathSegments(): void

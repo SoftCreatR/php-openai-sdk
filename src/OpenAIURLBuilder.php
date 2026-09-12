@@ -46,6 +46,9 @@ class OpenAIURLBuilder
      *     category: string,
      *     body: 'none'|'json'|'multipart',
      *     fileFields?: list<string>,
+     *     headers?: array<string, string|string[]>,
+     *     query?: array<string, bool|float|int|string>,
+     *     streaming?: bool,
      *     admin?: bool,
      *     deprecated?: bool
      * }>
@@ -73,6 +76,18 @@ class OpenAIURLBuilder
         'createImage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/generations', 'category' => 'images', 'body' => 'json'],
         'createImageEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/edits', 'category' => 'images', 'body' => 'multipart', 'fileFields' => ['image', 'mask']],
 
+        // Videos
+        'createVideo' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos', 'category' => 'videos', 'body' => 'json'],
+        'createVideoCharacter' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/characters', 'category' => 'videos', 'body' => 'multipart', 'fileFields' => ['video']],
+        'retrieveVideoCharacter' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos/characters/{character_id}', 'category' => 'videos', 'body' => 'none'],
+        'listVideos' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos', 'category' => 'videos', 'body' => 'none'],
+        'retrieveVideo' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos/{video_id}', 'category' => 'videos', 'body' => 'none'],
+        'deleteVideo' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/videos/{video_id}', 'category' => 'videos', 'body' => 'none'],
+        'downloadVideoContent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos/{video_id}/content', 'category' => 'videos', 'body' => 'none'],
+        'createVideoEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/edits', 'category' => 'videos', 'body' => 'json'],
+        'createVideoExtension' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/extensions', 'category' => 'videos', 'body' => 'json'],
+        'createVideoRemix' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/{video_id}/remix', 'category' => 'videos', 'body' => 'json'],
+
         // Audio
         'createTranscription' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/transcriptions', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['file']],
         'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['file']],
@@ -86,6 +101,10 @@ class OpenAIURLBuilder
 
         // Moderations
         'createModeration' => ['method' => self::HTTP_METHOD_POST, 'path' => '/moderations', 'category' => 'moderations', 'body' => 'json'],
+
+        // Content Provenance and Safety
+        'createContentProvenanceCheck' => ['method' => self::HTTP_METHOD_POST, 'path' => '/content_provenance_checks', 'category' => 'content_provenance', 'body' => 'multipart', 'fileFields' => ['file']],
+        'retrieveSafetyAlert' => ['method' => self::HTTP_METHOD_GET, 'path' => '/safety/alerts/{id}', 'category' => 'safety', 'body' => 'none'],
 
         // Models
         'listModels' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models', 'category' => 'models', 'body' => 'none'],
@@ -107,6 +126,20 @@ class OpenAIURLBuilder
         'runFineTuningGrader' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/alpha/graders/run', 'category' => 'fine_tuning', 'body' => 'json', 'deprecated' => true],
         'validateFineTuningGrader' => ['method' => self::HTTP_METHOD_POST, 'path' => '/fine_tuning/alpha/graders/validate', 'category' => 'fine_tuning', 'body' => 'json', 'deprecated' => true],
 
+        // Evals
+        'createEval' => ['method' => self::HTTP_METHOD_POST, 'path' => '/evals', 'category' => 'evals', 'body' => 'json'],
+        'listEvals' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals', 'category' => 'evals', 'body' => 'none'],
+        'retrieveEval' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}', 'category' => 'evals', 'body' => 'none'],
+        'updateEval' => ['method' => self::HTTP_METHOD_POST, 'path' => '/evals/{eval_id}', 'category' => 'evals', 'body' => 'json'],
+        'deleteEval' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/evals/{eval_id}', 'category' => 'evals', 'body' => 'none'],
+        'createEvalRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/evals/{eval_id}/runs', 'category' => 'evals', 'body' => 'json'],
+        'listEvalRuns' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs', 'category' => 'evals', 'body' => 'none'],
+        'retrieveEvalRun' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs/{run_id}', 'category' => 'evals', 'body' => 'none'],
+        'cancelEvalRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/evals/{eval_id}/runs/{run_id}', 'category' => 'evals', 'body' => 'none'],
+        'deleteEvalRun' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/evals/{eval_id}/runs/{run_id}', 'category' => 'evals', 'body' => 'none'],
+        'listEvalRunOutputItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs/{run_id}/output_items', 'category' => 'evals', 'body' => 'none'],
+        'retrieveEvalRunOutputItem' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}', 'category' => 'evals', 'body' => 'none'],
+
         // Vector Stores
         'listVectorStores' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores', 'category' => 'vector_stores', 'body' => 'none'],
         'createVectorStore' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores', 'category' => 'vector_stores', 'body' => 'json'],
@@ -124,6 +157,50 @@ class OpenAIURLBuilder
         'retrieveVectorStoreFileBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}', 'category' => 'vector_stores', 'body' => 'none'],
         'cancelVectorStoreFileBatch' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel', 'category' => 'vector_stores', 'body' => 'none'],
         'listVectorStoreFilesInBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}/files', 'category' => 'vector_stores', 'body' => 'none'],
+
+        // Agents (beta)
+        'createAgent' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/{agent_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'updateAgent' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/{agent_id}', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'deleteAgent' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/agents/{agent_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentEnvironment' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/environments/{environment_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'createAgentEnvironmentFile' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/environments/{environment_id}/files', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentEnvironmentFiles' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/environments/{environment_id}/files', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'createAgentEnvironmentTemplate' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/environments/templates', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentEnvironmentTemplates' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/environments/templates', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentEnvironmentTemplate' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/environments/templates/{environment_template_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'updateAgentEnvironmentTemplate' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/environments/templates/{environment_template_id}', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'deleteAgentEnvironmentTemplate' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/agents/environments/templates/{environment_template_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'createAgentSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/sessions', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessions' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentSession' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'updateAgentSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/sessions/{session_id}', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'deleteAgentSession' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/agents/sessions/{session_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'createAgentSessionEvents' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/sessions/{session_id}/events', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'streamAgentSessionEvents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/events', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1'], 'streaming' => true],
+        'listAgentSessionItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/items', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionTurns' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/turns', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentSessionTurn' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/turns/{turn_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionArtifacts' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/artifacts', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentSessionArtifact' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/artifacts/{artifact_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'deleteAgentSessionArtifact' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/agents/sessions/{session_id}/artifacts/{artifact_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentSessionArtifactContent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/artifacts/{artifact_id}/content', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionSubagents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/subagents', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentSessionSubagent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/subagents/{subagent_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionSubagentItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/subagents/{subagent_id}/items', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionSubagentTurns' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/subagents/{subagent_id}/turns', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentSessionSubagentTurn' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/subagents/{subagent_id}/turns/{turn_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionSubagentTurnItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/subagents/{subagent_id}/turns/{turn_id}/items', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'createVault' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vaults', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listVaults' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vaults', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveVault' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vaults/{vault_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'deleteVault' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/vaults/{vault_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'createVaultCredential' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vaults/{vault_id}/credentials', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listVaultCredentials' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vaults/{vault_id}/credentials', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveVaultCredential' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vaults/{vault_id}/credentials/{credential_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'rotateVaultCredential' => ['method' => self::HTTP_METHOD_POST, 'path' => '/vaults/{vault_id}/credentials/{credential_id}', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'deleteVaultCredential' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/vaults/{vault_id}/credentials/{credential_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
 
         // ChatKit
         'cancelChatKitSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/chatkit/sessions/{session_id}/cancel', 'category' => 'chatkit', 'body' => 'none'],
@@ -196,6 +273,11 @@ class OpenAIURLBuilder
         'retrieveGroupRole' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/groups/{group_id}/roles/{role_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'unassignGroupRole' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/groups/{group_id}/roles/{role_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
 
+        // Organization Spend Limit
+        'retrieveOrganizationSpendLimit' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/spend_limit', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'updateOrganizationSpendLimit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/spend_limit', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'deleteOrganizationSpendLimit' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/spend_limit', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+
         // Organization Roles
         'listOrganizationRoles' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/roles', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'createOrganizationRole' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/roles', 'category' => 'administration', 'body' => 'json', 'admin' => true],
@@ -247,6 +329,7 @@ class OpenAIURLBuilder
         'retrieveProjectServiceAccount' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/service_accounts/{service_account_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'updateProjectServiceAccount' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/service_accounts/{service_account_id}', 'category' => 'administration', 'body' => 'json', 'admin' => true],
         'deleteProjectServiceAccount' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/service_accounts/{service_account_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'createProjectServiceAccountApiKey' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys', 'category' => 'administration', 'body' => 'json', 'admin' => true],
 
         // Project API Keys
         'listProjectApiKeys' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/api_keys', 'category' => 'administration', 'body' => 'none', 'admin' => true],
@@ -292,6 +375,11 @@ class OpenAIURLBuilder
         'updateProjectSpendAlert' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/spend_alerts/{alert_id}', 'category' => 'administration', 'body' => 'json', 'admin' => true],
         'deleteProjectSpendAlert' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/spend_alerts/{alert_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
 
+        // Project Spend Limit
+        'retrieveProjectSpendLimit' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/spend_limit', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'updateProjectSpendLimit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/spend_limit', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'deleteProjectSpendLimit' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/spend_limit', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+
         // Project Certificates
         'listProjectCertificates' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/certificates', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'activateProjectCertificates' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/certificates/activate', 'category' => 'administration', 'body' => 'json', 'admin' => true],
@@ -306,13 +394,32 @@ class OpenAIURLBuilder
         'listInputItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/responses/{response_id}/input_items', 'category' => 'responses', 'body' => 'none'],
         'countResponseInputTokens' => ['method' => self::HTTP_METHOD_POST, 'path' => '/responses/input_tokens', 'category' => 'responses', 'body' => 'json'],
 
+        // Responses (beta schema)
+        'createBetaResponse' => ['method' => self::HTTP_METHOD_POST, 'path' => '/responses', 'category' => 'responses_beta', 'body' => 'json', 'query' => ['beta' => 'true']],
+        'getBetaResponse' => ['method' => self::HTTP_METHOD_GET, 'path' => '/responses/{response_id}', 'category' => 'responses_beta', 'body' => 'none', 'query' => ['beta' => 'true']],
+        'deleteBetaResponse' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/responses/{response_id}', 'category' => 'responses_beta', 'body' => 'none', 'query' => ['beta' => 'true']],
+        'cancelBetaResponse' => ['method' => self::HTTP_METHOD_POST, 'path' => '/responses/{response_id}/cancel', 'category' => 'responses_beta', 'body' => 'none', 'query' => ['beta' => 'true']],
+        'compactBetaResponse' => ['method' => self::HTTP_METHOD_POST, 'path' => '/responses/compact', 'category' => 'responses_beta', 'body' => 'json', 'query' => ['beta' => 'true']],
+        'listBetaResponseInputItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/responses/{response_id}/input_items', 'category' => 'responses_beta', 'body' => 'none', 'query' => ['beta' => 'true']],
+        'countBetaResponseInputTokens' => ['method' => self::HTTP_METHOD_POST, 'path' => '/responses/input_tokens', 'category' => 'responses_beta', 'body' => 'json', 'query' => ['beta' => 'true']],
+
         // Realtime
+        'createRealtimeCall' => ['method' => self::HTTP_METHOD_POST, 'path' => '/realtime/calls', 'category' => 'realtime', 'body' => 'multipart', 'fileFields' => []],
         'createRealtimeClientSecret' => ['method' => self::HTTP_METHOD_POST, 'path' => '/realtime/client_secrets', 'category' => 'realtime', 'body' => 'json'],
         'acceptRealtimeCall' => ['method' => self::HTTP_METHOD_POST, 'path' => '/realtime/calls/{call_id}/accept', 'category' => 'realtime', 'body' => 'json'],
         'hangupRealtimeCall' => ['method' => self::HTTP_METHOD_POST, 'path' => '/realtime/calls/{call_id}/hangup', 'category' => 'realtime', 'body' => 'none'],
         'referRealtimeCall' => ['method' => self::HTTP_METHOD_POST, 'path' => '/realtime/calls/{call_id}/refer', 'category' => 'realtime', 'body' => 'json'],
         'rejectRealtimeCall' => ['method' => self::HTTP_METHOD_POST, 'path' => '/realtime/calls/{call_id}/reject', 'category' => 'realtime', 'body' => 'json'],
         'createRealtimeTranslationClientSecret' => ['method' => self::HTTP_METHOD_POST, 'path' => '/realtime/translations/client_secrets', 'category' => 'realtime', 'body' => 'json'],
+
+        // Live
+        'createLiveSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/live/sessions', 'category' => 'live', 'body' => 'json'],
+        'acceptLiveSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/live/sessions/{session_id}/accept', 'category' => 'live', 'body' => 'json'],
+        'downloadLiveSessionRecording' => ['method' => self::HTTP_METHOD_GET, 'path' => '/live/sessions/{session_id}/content', 'category' => 'live', 'body' => 'none'],
+        'forkLiveSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/live/sessions/{session_id}/fork', 'category' => 'live', 'body' => 'json'],
+        'hangupLiveSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/live/sessions/{session_id}/hangup', 'category' => 'live', 'body' => 'none'],
+        'referLiveSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/live/sessions/{session_id}/refer', 'category' => 'live', 'body' => 'json'],
+        'rejectLiveSession' => ['method' => self::HTTP_METHOD_POST, 'path' => '/live/sessions/{session_id}/reject', 'category' => 'live', 'body' => 'json'],
 
         // Conversations
         'createConversation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/conversations', 'category' => 'conversations', 'body' => 'json'],
@@ -366,6 +473,9 @@ class OpenAIURLBuilder
      *     category: string,
      *     body: 'none'|'json'|'multipart',
      *     fileFields?: list<string>,
+     *     headers?: array<string, string|string[]>,
+     *     query?: array<string, bool|float|int|string>,
+     *     streaming?: bool,
      *     admin?: bool,
      *     deprecated?: bool
      * }>
@@ -386,6 +496,9 @@ class OpenAIURLBuilder
      *     category: string,
      *     body: 'none'|'json'|'multipart',
      *     fileFields?: list<string>,
+     *     headers?: array<string, string|string[]>,
+     *     query?: array<string, bool|float|int|string>,
+     *     streaming?: bool,
      *     admin?: bool,
      *     deprecated?: bool
      * } The endpoint configuration.

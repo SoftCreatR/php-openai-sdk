@@ -7,7 +7,7 @@
 
 A lightweight, underrated PSR-17/PSR-18 client for the current [OpenAI API](https://developers.openai.com/api/reference), with
 examples for every exposed SDK method, SSE streaming, streamed multipart uploads, structured errors, project scoping,
-and webhook signature verification.
+endpoint-specific beta headers, and webhook signature verification.
 
 ## Requirements
 
@@ -68,8 +68,20 @@ $result = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ER
 echo $result['output'][0]['content'][0]['text'];
 ```
 
-Endpoint methods return a PSR-7 `ResponseInterface`. Streaming calls return `null` after delivering their events to
-the callback.
+Endpoint methods return a PSR-7 `ResponseInterface`, including calls that deliver SSE events to a callback.
+
+## Agents API
+
+The beta Agents API provides reusable agents, managed sessions, hosted environments, artifacts, subagents, and vaults.
+The SDK applies the required `OpenAI-Beta: agents=v1` header automatically.
+
+```php
+$agent = $openAI->createAgent([
+    'name' => 'Documentation assistant',
+    'model' => 'gpt-5.4-mini',
+    'instructions' => 'Answer questions using the available project files.',
+]);
+```
 
 ## Arguments
 
@@ -132,7 +144,9 @@ $openAI->createResponse(
 );
 ```
 
-An ordinary JSON response is still returned when a callback is supplied without requesting an SSE stream.
+An ordinary JSON response is still returned when a callback is supplied without requesting an SSE stream. Endpoints
+that are inherently streaming, such as `streamAgentSessionEvents`, select a `StreamingClientInterface` transport
+without requiring a body flag.
 
 ## File Uploads
 
@@ -147,7 +161,8 @@ $response = $openAI->uploadFile([
 ```
 
 Repeated upload fields such as image inputs and skill files accept arrays of paths. Nested non-file values are encoded
-using bracket notation.
+using bracket notation. Multipart fields that are protocol payloads rather than files, such as Realtime SDP, remain
+ordinary strings.
 
 ## Errors
 
@@ -201,13 +216,14 @@ cp .env.example .env
 php examples/responses/createResponse.php
 ```
 
-Set `OPENAI_ADMIN_KEY` only when running examples under `examples/administration`.
+Set `OPENAI_ADMIN_KEY` only when running examples under `examples/administration`. The Agents vault credential examples
+also read `MCP_BEARER_TOKEN`; keep that secret in `.env` and never commit it.
 
 ## Supported Methods
 
 The catalog follows the current [OpenAI API reference](https://developers.openai.com/api/reference). Fine-tuning is
-retained for transitional compatibility and is marked deprecated. APIs that OpenAI classifies as legacy or has
-scheduled for shutdown are intentionally absent.
+retained for transitional compatibility and is marked deprecated. APIs that OpenAI classifies as legacy are
+intentionally absent. Distinct beta routes are registered separately from their stable counterparts.
 
 ### Administration
 
@@ -230,6 +246,7 @@ scheduled for shutdown are intentionally absent.
 | `createProject` | `POST /organization/projects` | `json` | [PHP](examples/administration/projects/createProject.php) |
 | `createProjectRole` | `POST /projects/{project_id}/roles` | `json` | [PHP](examples/administration/project-roles/createProjectRole.php) |
 | `createProjectServiceAccount` | `POST /organization/projects/{project_id}/service_accounts` | `json` | [PHP](examples/administration/project-service-accounts/createProjectServiceAccount.php) |
+| `createProjectServiceAccountApiKey` | `POST /organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys` | `json` | [PHP](examples/administration/project-service-accounts/createProjectServiceAccountApiKey.php) |
 | `createProjectSpendAlert` | `POST /organization/projects/{project_id}/spend_alerts` | `json` | [PHP](examples/administration/project-spend-alerts/createProjectSpendAlert.php) |
 | `createProjectUser` | `POST /organization/projects/{project_id}/users` | `json` | [PHP](examples/administration/project-users/createProjectUser.php) |
 | `deactivateCertificates` | `POST /organization/certificates/deactivate` | `json` | [PHP](examples/administration/certificates/deactivateCertificates.php) |
@@ -240,11 +257,13 @@ scheduled for shutdown are intentionally absent.
 | `deleteInvite` | `DELETE /organization/invites/{invite_id}` | `none` | [PHP](examples/administration/invites/deleteInvite.php) |
 | `deleteOrganizationRole` | `DELETE /organization/roles/{role_id}` | `none` | [PHP](examples/administration/org-roles/deleteOrganizationRole.php) |
 | `deleteOrganizationSpendAlert` | `DELETE /organization/spend_alerts/{alert_id}` | `none` | [PHP](examples/administration/org-spend-alerts/deleteOrganizationSpendAlert.php) |
+| `deleteOrganizationSpendLimit` | `DELETE /organization/spend_limit` | `none` | [PHP](examples/administration/org-spend-limits/deleteOrganizationSpendLimit.php) |
 | `deleteProjectApiKey` | `DELETE /organization/projects/{project_id}/api_keys/{api_key_id}` | `none` | [PHP](examples/administration/project-api-keys/deleteProjectApiKey.php) |
 | `deleteProjectModelPermissions` | `DELETE /organization/projects/{project_id}/model_permissions` | `none` | [PHP](examples/administration/project-model-permissions/deleteProjectModelPermissions.php) |
 | `deleteProjectRole` | `DELETE /projects/{project_id}/roles/{role_id}` | `none` | [PHP](examples/administration/project-roles/deleteProjectRole.php) |
 | `deleteProjectServiceAccount` | `DELETE /organization/projects/{project_id}/service_accounts/{service_account_id}` | `none` | [PHP](examples/administration/project-service-accounts/deleteProjectServiceAccount.php) |
 | `deleteProjectSpendAlert` | `DELETE /organization/projects/{project_id}/spend_alerts/{alert_id}` | `none` | [PHP](examples/administration/project-spend-alerts/deleteProjectSpendAlert.php) |
+| `deleteProjectSpendLimit` | `DELETE /organization/projects/{project_id}/spend_limit` | `none` | [PHP](examples/administration/project-spend-limits/deleteProjectSpendLimit.php) |
 | `deleteProjectUser` | `DELETE /organization/projects/{project_id}/users/{user_id}` | `none` | [PHP](examples/administration/project-users/deleteProjectUser.php) |
 | `deleteUser` | `DELETE /organization/users/{user_id}` | `none` | [PHP](examples/administration/org-users/deleteUser.php) |
 | `getAudioSpeechesUsage` | `GET /organization/usage/audio_speeches` | `none` | [PHP](examples/administration/usage/getAudioSpeechesUsage.php) |
@@ -298,6 +317,7 @@ scheduled for shutdown are intentionally absent.
 | `retrieveOrganizationDataRetention` | `GET /organization/data_retention` | `none` | [PHP](examples/administration/org-data-retention/retrieveOrganizationDataRetention.php) |
 | `retrieveOrganizationRole` | `GET /organization/roles/{role_id}` | `none` | [PHP](examples/administration/org-roles/retrieveOrganizationRole.php) |
 | `retrieveOrganizationSpendAlert` | `GET /organization/spend_alerts/{alert_id}` | `none` | [PHP](examples/administration/org-spend-alerts/retrieveOrganizationSpendAlert.php) |
+| `retrieveOrganizationSpendLimit` | `GET /organization/spend_limit` | `none` | [PHP](examples/administration/org-spend-limits/retrieveOrganizationSpendLimit.php) |
 | `retrieveProject` | `GET /organization/projects/{project_id}` | `none` | [PHP](examples/administration/projects/retrieveProject.php) |
 | `retrieveProjectApiKey` | `GET /organization/projects/{project_id}/api_keys/{api_key_id}` | `none` | [PHP](examples/administration/project-api-keys/retrieveProjectApiKey.php) |
 | `retrieveProjectDataRetention` | `GET /organization/projects/{project_id}/data_retention` | `none` | [PHP](examples/administration/project-data-retention/retrieveProjectDataRetention.php) |
@@ -308,6 +328,7 @@ scheduled for shutdown are intentionally absent.
 | `retrieveProjectRole` | `GET /projects/{project_id}/roles/{role_id}` | `none` | [PHP](examples/administration/project-roles/retrieveProjectRole.php) |
 | `retrieveProjectServiceAccount` | `GET /organization/projects/{project_id}/service_accounts/{service_account_id}` | `none` | [PHP](examples/administration/project-service-accounts/retrieveProjectServiceAccount.php) |
 | `retrieveProjectSpendAlert` | `GET /organization/projects/{project_id}/spend_alerts/{alert_id}` | `none` | [PHP](examples/administration/project-spend-alerts/retrieveProjectSpendAlert.php) |
+| `retrieveProjectSpendLimit` | `GET /organization/projects/{project_id}/spend_limit` | `none` | [PHP](examples/administration/project-spend-limits/retrieveProjectSpendLimit.php) |
 | `retrieveProjectUser` | `GET /organization/projects/{project_id}/users/{user_id}` | `none` | [PHP](examples/administration/project-users/retrieveProjectUser.php) |
 | `retrieveProjectUserRole` | `GET /projects/{project_id}/users/{user_id}/roles/{role_id}` | `none` | [PHP](examples/administration/project-users/retrieveProjectUserRole.php) |
 | `retrieveUser` | `GET /organization/users/{user_id}` | `none` | [PHP](examples/administration/org-users/retrieveUser.php) |
@@ -320,11 +341,62 @@ scheduled for shutdown are intentionally absent.
 | `updateOrganizationDataRetention` | `POST /organization/data_retention` | `json` | [PHP](examples/administration/org-data-retention/updateOrganizationDataRetention.php) |
 | `updateOrganizationRole` | `POST /organization/roles/{role_id}` | `json` | [PHP](examples/administration/org-roles/updateOrganizationRole.php) |
 | `updateOrganizationSpendAlert` | `POST /organization/spend_alerts/{alert_id}` | `json` | [PHP](examples/administration/org-spend-alerts/updateOrganizationSpendAlert.php) |
+| `updateOrganizationSpendLimit` | `POST /organization/spend_limit` | `json` | [PHP](examples/administration/org-spend-limits/updateOrganizationSpendLimit.php) |
 | `updateProjectDataRetention` | `POST /organization/projects/{project_id}/data_retention` | `json` | [PHP](examples/administration/project-data-retention/updateProjectDataRetention.php) |
 | `updateProjectRole` | `POST /projects/{project_id}/roles/{role_id}` | `json` | [PHP](examples/administration/project-roles/updateProjectRole.php) |
 | `updateProjectServiceAccount` | `POST /organization/projects/{project_id}/service_accounts/{service_account_id}` | `json` | [PHP](examples/administration/project-service-accounts/updateProjectServiceAccount.php) |
 | `updateProjectSpendAlert` | `POST /organization/projects/{project_id}/spend_alerts/{alert_id}` | `json` | [PHP](examples/administration/project-spend-alerts/updateProjectSpendAlert.php) |
+| `updateProjectSpendLimit` | `POST /organization/projects/{project_id}/spend_limit` | `json` | [PHP](examples/administration/project-spend-limits/updateProjectSpendLimit.php) |
 | `uploadCertificate` | `POST /organization/certificates` | `json` | [PHP](examples/administration/certificates/uploadCertificate.php) |
+
+### Agents (Beta)
+
+The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for these endpoints.
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `createAgent` | `POST /agents` | `json` | [PHP](examples/agents/definitions/createAgent.php) |
+| `createAgentEnvironmentFile` | `POST /agents/environments/{environment_id}/files` | `json` | [PHP](examples/agents/environments/createAgentEnvironmentFile.php) |
+| `createAgentEnvironmentTemplate` | `POST /agents/environments/templates` | `json` | [PHP](examples/agents/environment-templates/createAgentEnvironmentTemplate.php) |
+| `createAgentSession` | `POST /agents/sessions` | `json` | [PHP](examples/agents/sessions/createAgentSession.php) |
+| `createAgentSessionEvents` | `POST /agents/sessions/{session_id}/events` | `json` | [PHP](examples/agents/sessions/createAgentSessionEvents.php) |
+| `createVault` | `POST /vaults` | `json` | [PHP](examples/agents/vaults/createVault.php) |
+| `createVaultCredential` | `POST /vaults/{vault_id}/credentials` | `json` | [PHP](examples/agents/vaults/createVaultCredential.php) |
+| `deleteAgent` | `DELETE /agents/{agent_id}` | `none` | [PHP](examples/agents/definitions/deleteAgent.php) |
+| `deleteAgentEnvironmentTemplate` | `DELETE /agents/environments/templates/{environment_template_id}` | `none` | [PHP](examples/agents/environment-templates/deleteAgentEnvironmentTemplate.php) |
+| `deleteAgentSession` | `DELETE /agents/sessions/{session_id}` | `none` | [PHP](examples/agents/sessions/deleteAgentSession.php) |
+| `deleteAgentSessionArtifact` | `DELETE /agents/sessions/{session_id}/artifacts/{artifact_id}` | `none` | [PHP](examples/agents/artifacts/deleteAgentSessionArtifact.php) |
+| `deleteVault` | `DELETE /vaults/{vault_id}` | `none` | [PHP](examples/agents/vaults/deleteVault.php) |
+| `deleteVaultCredential` | `DELETE /vaults/{vault_id}/credentials/{credential_id}` | `none` | [PHP](examples/agents/vaults/deleteVaultCredential.php) |
+| `listAgentEnvironmentFiles` | `GET /agents/environments/{environment_id}/files` | `none` | [PHP](examples/agents/environments/listAgentEnvironmentFiles.php) |
+| `listAgentEnvironmentTemplates` | `GET /agents/environments/templates` | `none` | [PHP](examples/agents/environment-templates/listAgentEnvironmentTemplates.php) |
+| `listAgentSessionArtifacts` | `GET /agents/sessions/{session_id}/artifacts` | `none` | [PHP](examples/agents/artifacts/listAgentSessionArtifacts.php) |
+| `listAgentSessionItems` | `GET /agents/sessions/{session_id}/items` | `none` | [PHP](examples/agents/sessions/listAgentSessionItems.php) |
+| `listAgentSessionSubagentItems` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}/items` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagentItems.php) |
+| `listAgentSessionSubagentTurnItems` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}/turns/{turn_id}/items` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagentTurnItems.php) |
+| `listAgentSessionSubagentTurns` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}/turns` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagentTurns.php) |
+| `listAgentSessionSubagents` | `GET /agents/sessions/{session_id}/subagents` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagents.php) |
+| `listAgentSessionTurns` | `GET /agents/sessions/{session_id}/turns` | `none` | [PHP](examples/agents/sessions/listAgentSessionTurns.php) |
+| `listAgentSessions` | `GET /agents/sessions` | `none` | [PHP](examples/agents/sessions/listAgentSessions.php) |
+| `listAgents` | `GET /agents` | `none` | [PHP](examples/agents/definitions/listAgents.php) |
+| `listVaultCredentials` | `GET /vaults/{vault_id}/credentials` | `none` | [PHP](examples/agents/vaults/listVaultCredentials.php) |
+| `listVaults` | `GET /vaults` | `none` | [PHP](examples/agents/vaults/listVaults.php) |
+| `retrieveAgent` | `GET /agents/{agent_id}` | `none` | [PHP](examples/agents/definitions/retrieveAgent.php) |
+| `retrieveAgentEnvironment` | `GET /agents/environments/{environment_id}` | `none` | [PHP](examples/agents/environments/retrieveAgentEnvironment.php) |
+| `retrieveAgentEnvironmentTemplate` | `GET /agents/environments/templates/{environment_template_id}` | `none` | [PHP](examples/agents/environment-templates/retrieveAgentEnvironmentTemplate.php) |
+| `retrieveAgentSession` | `GET /agents/sessions/{session_id}` | `none` | [PHP](examples/agents/sessions/retrieveAgentSession.php) |
+| `retrieveAgentSessionArtifact` | `GET /agents/sessions/{session_id}/artifacts/{artifact_id}` | `none` | [PHP](examples/agents/artifacts/retrieveAgentSessionArtifact.php) |
+| `retrieveAgentSessionArtifactContent` | `GET /agents/sessions/{session_id}/artifacts/{artifact_id}/content` | `none` | [PHP](examples/agents/artifacts/retrieveAgentSessionArtifactContent.php) |
+| `retrieveAgentSessionSubagent` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}` | `none` | [PHP](examples/agents/subagents/retrieveAgentSessionSubagent.php) |
+| `retrieveAgentSessionSubagentTurn` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}/turns/{turn_id}` | `none` | [PHP](examples/agents/subagents/retrieveAgentSessionSubagentTurn.php) |
+| `retrieveAgentSessionTurn` | `GET /agents/sessions/{session_id}/turns/{turn_id}` | `none` | [PHP](examples/agents/sessions/retrieveAgentSessionTurn.php) |
+| `retrieveVault` | `GET /vaults/{vault_id}` | `none` | [PHP](examples/agents/vaults/retrieveVault.php) |
+| `retrieveVaultCredential` | `GET /vaults/{vault_id}/credentials/{credential_id}` | `none` | [PHP](examples/agents/vaults/retrieveVaultCredential.php) |
+| `rotateVaultCredential` | `POST /vaults/{vault_id}/credentials/{credential_id}` | `json` | [PHP](examples/agents/vaults/rotateVaultCredential.php) |
+| `streamAgentSessionEvents` | `GET /agents/sessions/{session_id}/events` | `none` | [PHP](examples/agents/sessions/streamAgentSessionEvents.php) |
+| `updateAgent` | `POST /agents/{agent_id}` | `json` | [PHP](examples/agents/definitions/updateAgent.php) |
+| `updateAgentEnvironmentTemplate` | `POST /agents/environments/templates/{environment_template_id}` | `json` | [PHP](examples/agents/environment-templates/updateAgentEnvironmentTemplate.php) |
+| `updateAgentSession` | `POST /agents/sessions/{session_id}` | `json` | [PHP](examples/agents/sessions/updateAgentSession.php) |
 
 ### Audio
 
@@ -349,7 +421,7 @@ scheduled for shutdown are intentionally absent.
 | `listBatches` | `GET /batches` | `none` | [PHP](examples/batch/listBatches.php) |
 | `retrieveBatch` | `GET /batches/{batch_id}` | `none` | [PHP](examples/batch/retrieveBatch.php) |
 
-### Chat
+### Chat Completions
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
@@ -360,7 +432,7 @@ scheduled for shutdown are intentionally absent.
 | `listChatCompletions` | `GET /chat/completions` | `none` | [PHP](examples/chat/listChatCompletions.php) |
 | `updateChatCompletion` | `POST /chat/completions/{completion_id}` | `json` | [PHP](examples/chat/updateChatCompletion.php) |
 
-### Chatkit
+### ChatKit
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
@@ -385,6 +457,12 @@ scheduled for shutdown are intentionally absent.
 | `retrieveContainerFile` | `GET /containers/{container_id}/files/{file_id}` | `none` | [PHP](examples/containers/retrieveContainerFile.php) |
 | `retrieveContainerFileContent` | `GET /containers/{container_id}/files/{file_id}/content` | `none` | [PHP](examples/containers/retrieveContainerFileContent.php) |
 
+### Content Provenance
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `createContentProvenanceCheck` | `POST /content_provenance_checks` | `multipart` | [PHP](examples/content-provenance/createContentProvenanceCheck.php) |
+
 ### Conversations
 
 | SDK method | HTTP route | Request body | Example |
@@ -404,6 +482,23 @@ scheduled for shutdown are intentionally absent.
 | --- | --- | --- | --- |
 | `createEmbedding` | `POST /embeddings` | `json` | [PHP](examples/embeddings/createEmbedding.php) |
 
+### Evals
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `cancelEvalRun` | `POST /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/cancelEvalRun.php) |
+| `createEval` | `POST /evals` | `json` | [PHP](examples/evals/createEval.php) |
+| `createEvalRun` | `POST /evals/{eval_id}/runs` | `json` | [PHP](examples/evals/runs/createEvalRun.php) |
+| `deleteEval` | `DELETE /evals/{eval_id}` | `none` | [PHP](examples/evals/deleteEval.php) |
+| `deleteEvalRun` | `DELETE /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/deleteEvalRun.php) |
+| `listEvalRunOutputItems` | `GET /evals/{eval_id}/runs/{run_id}/output_items` | `none` | [PHP](examples/evals/runs/listEvalRunOutputItems.php) |
+| `listEvalRuns` | `GET /evals/{eval_id}/runs` | `none` | [PHP](examples/evals/runs/listEvalRuns.php) |
+| `listEvals` | `GET /evals` | `none` | [PHP](examples/evals/listEvals.php) |
+| `retrieveEval` | `GET /evals/{eval_id}` | `none` | [PHP](examples/evals/retrieveEval.php) |
+| `retrieveEvalRun` | `GET /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/retrieveEvalRun.php) |
+| `retrieveEvalRunOutputItem` | `GET /evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}` | `none` | [PHP](examples/evals/runs/retrieveEvalRunOutputItem.php) |
+| `updateEval` | `POST /evals/{eval_id}` | `json` | [PHP](examples/evals/updateEval.php) |
+
 ### Files
 
 | SDK method | HTTP route | Request body | Example |
@@ -414,7 +509,9 @@ scheduled for shutdown are intentionally absent.
 | `retrieveFileContent` | `GET /files/{file_id}/content` | `none` | [PHP](examples/files/retrieveFileContent.php) |
 | `uploadFile` | `POST /files` | `multipart` | [PHP](examples/files/uploadFile.php) |
 
-### Fine Tuning
+### Fine-Tuning (Deprecated)
+
+These routes remain available for transitional compatibility and are deprecated upstream.
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
@@ -439,6 +536,18 @@ scheduled for shutdown are intentionally absent.
 | `createImage` | `POST /images/generations` | `json` | [PHP](examples/images/createImage.php) |
 | `createImageEdit` | `POST /images/edits` | `multipart` | [PHP](examples/images/createImageEdit.php) |
 
+### Live
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `acceptLiveSession` | `POST /live/sessions/{session_id}/accept` | `json` | [PHP](examples/live/acceptLiveSession.php) |
+| `createLiveSession` | `POST /live/sessions` | `json` | [PHP](examples/live/createLiveSession.php) |
+| `downloadLiveSessionRecording` | `GET /live/sessions/{session_id}/content` | `none` | [PHP](examples/live/downloadLiveSessionRecording.php) |
+| `forkLiveSession` | `POST /live/sessions/{session_id}/fork` | `json` | [PHP](examples/live/forkLiveSession.php) |
+| `hangupLiveSession` | `POST /live/sessions/{session_id}/hangup` | `none` | [PHP](examples/live/hangupLiveSession.php) |
+| `referLiveSession` | `POST /live/sessions/{session_id}/refer` | `json` | [PHP](examples/live/referLiveSession.php) |
+| `rejectLiveSession` | `POST /live/sessions/{session_id}/reject` | `json` | [PHP](examples/live/rejectLiveSession.php) |
+
 ### Models
 
 | SDK method | HTTP route | Request body | Example |
@@ -458,6 +567,7 @@ scheduled for shutdown are intentionally absent.
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
 | `acceptRealtimeCall` | `POST /realtime/calls/{call_id}/accept` | `json` | [PHP](examples/realtime/acceptRealtimeCall.php) |
+| `createRealtimeCall` | `POST /realtime/calls` | `multipart` | [PHP](examples/realtime/createRealtimeCall.php) |
 | `createRealtimeClientSecret` | `POST /realtime/client_secrets` | `json` | [PHP](examples/realtime/createRealtimeClientSecret.php) |
 | `createRealtimeTranslationClientSecret` | `POST /realtime/translations/client_secrets` | `json` | [PHP](examples/realtime/createRealtimeTranslationClientSecret.php) |
 | `hangupRealtimeCall` | `POST /realtime/calls/{call_id}/hangup` | `none` | [PHP](examples/realtime/hangupRealtimeCall.php) |
@@ -475,6 +585,26 @@ scheduled for shutdown are intentionally absent.
 | `deleteResponse` | `DELETE /responses/{response_id}` | `none` | [PHP](examples/responses/deleteResponse.php) |
 | `getResponse` | `GET /responses/{response_id}` | `none` | [PHP](examples/responses/getResponse.php) |
 | `listInputItems` | `GET /responses/{response_id}/input_items` | `none` | [PHP](examples/responses/listInputItems.php) |
+
+### Responses (Beta Schema)
+
+These methods select the distinct beta schema by adding `?beta=true`; stable Responses methods are unchanged.
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `cancelBetaResponse` | `POST /responses/{response_id}/cancel?beta=true` | `none` | [PHP](examples/responses/beta/cancelBetaResponse.php) |
+| `compactBetaResponse` | `POST /responses/compact?beta=true` | `json` | [PHP](examples/responses/beta/compactBetaResponse.php) |
+| `countBetaResponseInputTokens` | `POST /responses/input_tokens?beta=true` | `json` | [PHP](examples/responses/beta/countBetaResponseInputTokens.php) |
+| `createBetaResponse` | `POST /responses?beta=true` | `json` | [PHP](examples/responses/beta/createBetaResponse.php) |
+| `deleteBetaResponse` | `DELETE /responses/{response_id}?beta=true` | `none` | [PHP](examples/responses/beta/deleteBetaResponse.php) |
+| `getBetaResponse` | `GET /responses/{response_id}?beta=true` | `none` | [PHP](examples/responses/beta/getBetaResponse.php) |
+| `listBetaResponseInputItems` | `GET /responses/{response_id}/input_items?beta=true` | `none` | [PHP](examples/responses/beta/listBetaResponseInputItems.php) |
+
+### Safety
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `retrieveSafetyAlert` | `GET /safety/alerts/{id}` | `none` | [PHP](examples/safety/retrieveSafetyAlert.php) |
 
 ### Skills
 
@@ -522,6 +652,21 @@ scheduled for shutdown are intentionally absent.
 | `searchVectorStore` | `POST /vector_stores/{vector_store_id}/search` | `json` | [PHP](examples/vector-stores/searchVectorStore.php) |
 | `updateVectorStoreFileAttributes` | `POST /vector_stores/{vector_store_id}/files/{file_id}` | `json` | [PHP](examples/vector-store-files/updateVectorStoreFileAttributes.php) |
 
+### Videos
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `createVideo` | `POST /videos` | `json` | [PHP](examples/videos/createVideo.php) |
+| `createVideoCharacter` | `POST /videos/characters` | `multipart` | [PHP](examples/videos/createVideoCharacter.php) |
+| `createVideoEdit` | `POST /videos/edits` | `json` | [PHP](examples/videos/createVideoEdit.php) |
+| `createVideoExtension` | `POST /videos/extensions` | `json` | [PHP](examples/videos/createVideoExtension.php) |
+| `createVideoRemix` | `POST /videos/{video_id}/remix` | `json` | [PHP](examples/videos/createVideoRemix.php) |
+| `deleteVideo` | `DELETE /videos/{video_id}` | `none` | [PHP](examples/videos/deleteVideo.php) |
+| `downloadVideoContent` | `GET /videos/{video_id}/content` | `none` | [PHP](examples/videos/downloadVideoContent.php) |
+| `listVideos` | `GET /videos` | `none` | [PHP](examples/videos/listVideos.php) |
+| `retrieveVideo` | `GET /videos/{video_id}` | `none` | [PHP](examples/videos/retrieveVideo.php) |
+| `retrieveVideoCharacter` | `GET /videos/characters/{character_id}` | `none` | [PHP](examples/videos/retrieveVideoCharacter.php) |
+
 ## Custom API Origin
 
 `origin` accepts either a hostname or an absolute base URL. A hostname uses `/v1`; an absolute URL keeps its path unless
@@ -540,9 +685,9 @@ $openAI = new OpenAI(
 
 ## Deprecated And Removed APIs
 
-Version 4 deliberately does not expose APIs that OpenAI classifies as legacy, has already removed, or has scheduled
-for shutdown: classic Completions, Assistants/Threads/Runs/Messages, Realtime Beta session creation, Evals, Videos,
-and DALL-E image variations. Use Responses and Conversations instead of Assistants.
+Version 4 deliberately does not expose APIs that OpenAI classifies as legacy or has removed: classic Completions,
+Assistants/Threads/Runs/Messages, deprecated Realtime session-token routes, and DALL-E image variations. Use Responses
+and Conversations instead of Assistants, and Realtime client-secret methods instead of the old session-token routes.
 
 The self-serve fine-tuning routes remain temporarily available and are marked deprecated because eligible existing
 customers can still use them during OpenAI's transition. See OpenAI's

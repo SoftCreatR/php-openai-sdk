@@ -137,6 +137,30 @@ final class ServerSentEventDecoderTest extends TestCase
     /**
      * @throws OpenAIException
      */
+    public function testConsumesAllReportedUnreadBytes(): void
+    {
+        $source = Utils::streamFor("data: {\"id\": 1}\n\n");
+        $stream = FnStream::decorate($source, [
+            'getMetadata' => static function (?string $key = null) use ($source): mixed {
+                if ($key === 'unread_bytes') {
+                    return $source->getSize() - $source->tell();
+                }
+
+                return $source->getMetadata($key);
+            },
+        ]);
+        $events = [];
+
+        (new ServerSentEventDecoder())->decode($stream, static function (mixed $event) use (&$events): void {
+            $events[] = $event;
+        });
+
+        $this->assertSame([['id' => 1]], $events);
+    }
+
+    /**
+     * @throws OpenAIException
+     */
     public function testStopsAtDoneFrameBufferedUntilEndOfStream(): void
     {
         (new ServerSentEventDecoder())->decode(

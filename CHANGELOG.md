@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-09-12
+
+### Added
+
+- Added 88 current API routes for Agents, Evals, Live sessions, Videos, beta Responses, content provenance checks, safety alerts,
+  Realtime call creation, organization and project spend limits, and project service-account API keys.
+- Added automatic endpoint headers, including `OpenAI-Beta: agents=v1` for the beta Agents API.
+- Added endpoint-declared streaming so Agents session event streams use `StreamingClientInterface` without a request
+  body flag.
+- Added one runnable PHP example for every new method, grouped by API resource, plus valid SDP and MP4 fixtures for
+  Realtime, Live, and Video upload examples.
+
+### Changed
+
+- Updated the README endpoint catalog, feature documentation, examples, and IDE method annotations for the current
+  OpenAI API reference.
+- Updated the PHP CS Fixer, Guzzle, PHPStan, PHPUnit, and dotenv development constraints while preserving dependency
+  resolution on PHP 8.1 through PHP 8.5.
+- Multipart endpoint metadata can now explicitly identify that all fields are scalar protocol data rather than local
+  file paths, as required by Realtime SDP calls.
+- Corrected the Agents environment-template, environment-file, and vault-rotation examples, the administration
+  spend-limit enum values, and the Realtime/Live SDP fixture based on live API verification.
+
+### Compatibility
+
+- Version 4.1 is backward compatible with the public 4.0 API. Classic Completions, legacy Assistants routes, and
+  DALL-E 2 image variations remain intentionally absent. The nonfunctional legacy Realtime session-token routes remain
+  absent; use the Realtime client-secret endpoints instead.
+
 ## [4.0.2] - 2026-07-14
 
 ### Added

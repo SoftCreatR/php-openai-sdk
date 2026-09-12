@@ -623,6 +623,46 @@ final class OpenAITest extends TestCase
     }
 
     /**
+     * @throws \PHPUnit\Framework\MockObject\Exception
+     */
+    public function testEndpointMetadataCanSelectTheStreamingTransport(): void
+    {
+        $psr17Factory = new HttpFactory();
+        $client = $this->createMock(StreamingClientInterface::class);
+        $response = new Response(
+            200,
+            ['Content-Type' => 'text/event-stream'],
+            "data: {\"type\":\"agent.session.updated\"}\n\n",
+        );
+        $client->expects($this->once())
+            ->method('sendStreamingRequest')
+            ->willReturn($response);
+        $client->expects($this->never())
+            ->method('sendRequest');
+
+        $openAI = new OpenAI(
+            $psr17Factory,
+            $psr17Factory,
+            $psr17Factory,
+            $client,
+            $this->apiKey,
+            $this->organization,
+            $this->origin,
+        );
+        $events = [];
+
+        $actual = $openAI->streamAgentSessionEvents(
+            ['session_id' => 'sess_abc123'],
+            static function (array $event) use (&$events): void {
+                $events[] = $event;
+            },
+        );
+
+        $this->assertSame($response, $actual);
+        $this->assertSame([['type' => 'agent.session.updated']], $events);
+    }
+
+    /**
      * Tests that the listModels method handles API calls correctly.
      *
      * @throws Exception
@@ -795,6 +835,49 @@ final class OpenAITest extends TestCase
     }
 
     /**
+     * @throws Throwable
+     */
+    public function testEndpointHeadersAreAppliedAndCanBeOverridden(): void
+    {
+        $requests = 0;
+        $this->sendRequestMock(function (RequestInterface $request) use (&$requests) {
+            ++$requests;
+            $expected = $requests === 1 ? 'agents=v1' : 'agents=preview';
+            $this->assertSame($expected, $request->getHeaderLine('OpenAI-Beta'));
+
+            return new Response(200, [], '{}');
+        });
+
+        $this->openAI->listAgents();
+        $this->openAI->listAgents([
+            'customHeaders' => ['OpenAI-Beta' => 'agents=preview'],
+        ]);
+
+        $this->assertSame(2, $requests);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testRealtimeCallAcceptsScalarMultipartFields(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $body = (string) $request->getBody();
+            $this->assertStringContainsString('multipart/form-data', $request->getHeaderLine('Content-Type'));
+            $this->assertStringContainsString('name="sdp"', $body);
+            $this->assertStringContainsString('v=0', $body);
+            $this->assertStringContainsString('name="session"', $body);
+
+            return new Response(200, [], 'v=0');
+        });
+
+        $this->openAI->createRealtimeCall([
+            'sdp' => "v=0\r\n",
+            'session' => '{"type":"realtime","model":"gpt-realtime"}',
+        ]);
+    }
+
+    /**
      * @throws ReflectionException
      */
     public function testInfersLegacyEndpointBodyTypes(): void
@@ -857,6 +940,36 @@ final class OpenAITest extends TestCase
             'limit' => 10,
             'customHeaders' => ['X-Client-Request-Id' => 'test-request-id'],
         ]);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testEndpointQueryParametersAreAppliedAndCanBeOverridden(): void
+    {
+        $requests = 0;
+        $this->sendRequestMock(function (RequestInterface $request) use (&$requests) {
+            ++$requests;
+            $query = [];
+            \parse_str($request->getUri()->getQuery(), $query);
+
+            $this->assertSame($requests === 1 ? 'true' : 'false', $query['beta']);
+            $this->assertSame('file_search_call.results', $query['include']);
+
+            return new Response(200, [], '{}');
+        });
+
+        $this->openAI->getBetaResponse([
+            'response_id' => 'resp_abc123',
+            'include' => 'file_search_call.results',
+        ]);
+        $this->openAI->getBetaResponse([
+            'response_id' => 'resp_abc123',
+            'beta' => 'false',
+            'include' => 'file_search_call.results',
+        ]);
+
+        $this->assertSame(2, $requests);
     }
 
     /**
