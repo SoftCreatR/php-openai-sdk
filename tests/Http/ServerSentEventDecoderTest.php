@@ -21,13 +21,13 @@ namespace SoftCreatR\OpenAI\Tests\Http;
 use GuzzleHttp\Psr7\FnStream;
 use GuzzleHttp\Psr7\Utils;
 use JsonException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 use SoftCreatR\OpenAI\Http\ServerSentEventDecoder;
 
-/**
- * @covers \SoftCreatR\OpenAI\Http\ServerSentEventDecoder
- */
+#[CoversClass(OpenAIException::class)]
+#[CoversClass(ServerSentEventDecoder::class)]
 final class ServerSentEventDecoderTest extends TestCase
 {
     /**

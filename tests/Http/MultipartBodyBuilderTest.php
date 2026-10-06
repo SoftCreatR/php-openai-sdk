@@ -20,6 +20,7 @@ namespace SoftCreatR\OpenAI\Tests\Http;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionException;
 use RuntimeException;
@@ -90,9 +91,7 @@ final class UnreadableStreamWrapper
     }
 }
 
-/**
- * @covers \SoftCreatR\OpenAI\Http\MultipartBodyBuilder
- */
+#[CoversClass(MultipartBodyBuilder::class)]
 final class MultipartBodyBuilderTest extends TestCase
 {
     /**

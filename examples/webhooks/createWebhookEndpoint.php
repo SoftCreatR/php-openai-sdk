@@ -15,12 +15,15 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// GET /videos/{video_id}
+// POST /webhook_endpoints
 OpenAIFactory::request(
-    'retrieveVideo',
+    'createWebhookEndpoint',
     [
-        'video_id' => 'video_abc123',
+        'event_types' => ['response.completed'],
+        'name' => 'Response handler',
+        'url' => 'https://example.com/openai/webhook',
     ],
 );

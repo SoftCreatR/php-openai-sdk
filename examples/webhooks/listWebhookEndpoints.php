@@ -15,14 +15,13 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// POST /videos/characters
+// GET /webhook_endpoints
 OpenAIFactory::request(
-    'createVideoCharacter',
-    [],
+    'listWebhookEndpoints',
     [
-        'name' => 'Library Guide',
-        'video' => __DIR__ . '/fixtures/character.mp4',
+        'limit' => 20,
     ],
 );

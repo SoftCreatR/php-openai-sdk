@@ -50,6 +50,9 @@ class OpenAIURLBuilder
      *     query?: array<string, bool|float|int|string>,
      *     streaming?: bool,
      *     admin?: bool,
+     *     origin?: string,
+     *     basePath?: string,
+     *     authenticated?: bool,
      *     deprecated?: bool
      * }>
      */
@@ -76,18 +79,6 @@ class OpenAIURLBuilder
         'createImage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/generations', 'category' => 'images', 'body' => 'json'],
         'createImageEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/images/edits', 'category' => 'images', 'body' => 'multipart', 'fileFields' => ['image', 'mask']],
 
-        // Videos
-        'createVideo' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos', 'category' => 'videos', 'body' => 'json'],
-        'createVideoCharacter' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/characters', 'category' => 'videos', 'body' => 'multipart', 'fileFields' => ['video']],
-        'retrieveVideoCharacter' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos/characters/{character_id}', 'category' => 'videos', 'body' => 'none'],
-        'listVideos' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos', 'category' => 'videos', 'body' => 'none'],
-        'retrieveVideo' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos/{video_id}', 'category' => 'videos', 'body' => 'none'],
-        'deleteVideo' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/videos/{video_id}', 'category' => 'videos', 'body' => 'none'],
-        'downloadVideoContent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/videos/{video_id}/content', 'category' => 'videos', 'body' => 'none'],
-        'createVideoEdit' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/edits', 'category' => 'videos', 'body' => 'json'],
-        'createVideoExtension' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/extensions', 'category' => 'videos', 'body' => 'json'],
-        'createVideoRemix' => ['method' => self::HTTP_METHOD_POST, 'path' => '/videos/{video_id}/remix', 'category' => 'videos', 'body' => 'json'],
-
         // Audio
         'createTranscription' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/transcriptions', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['file']],
         'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['file']],
@@ -105,6 +96,10 @@ class OpenAIURLBuilder
         // Content Provenance and Safety
         'createContentProvenanceCheck' => ['method' => self::HTTP_METHOD_POST, 'path' => '/content_provenance_checks', 'category' => 'content_provenance', 'body' => 'multipart', 'fileFields' => ['file']],
         'retrieveSafetyAlert' => ['method' => self::HTTP_METHOD_GET, 'path' => '/safety/alerts/{id}', 'category' => 'safety', 'body' => 'none'],
+        'retrieveSafetyCase' => ['method' => self::HTTP_METHOD_GET, 'path' => '/safety/cases/{id}', 'category' => 'safety', 'body' => 'none'],
+
+        // Decisions (beta)
+        'createDecision' => ['method' => self::HTTP_METHOD_POST, 'path' => '/decisions', 'category' => 'decisions', 'body' => 'json'],
 
         // Models
         'listModels' => ['method' => self::HTTP_METHOD_GET, 'path' => '/models', 'category' => 'models', 'body' => 'none'],
@@ -135,7 +130,7 @@ class OpenAIURLBuilder
         'createEvalRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/evals/{eval_id}/runs', 'category' => 'evals', 'body' => 'json'],
         'listEvalRuns' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs', 'category' => 'evals', 'body' => 'none'],
         'retrieveEvalRun' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs/{run_id}', 'category' => 'evals', 'body' => 'none'],
-        'cancelEvalRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/evals/{eval_id}/runs/{run_id}', 'category' => 'evals', 'body' => 'none'],
+        'cancelEvalRun' => ['method' => self::HTTP_METHOD_POST, 'path' => '/evals/{eval_id}/runs/{run_id}/cancel', 'category' => 'evals', 'body' => 'none'],
         'deleteEvalRun' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/evals/{eval_id}/runs/{run_id}', 'category' => 'evals', 'body' => 'none'],
         'listEvalRunOutputItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs/{run_id}/output_items', 'category' => 'evals', 'body' => 'none'],
         'retrieveEvalRunOutputItem' => ['method' => self::HTTP_METHOD_GET, 'path' => '/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}', 'category' => 'evals', 'body' => 'none'],
@@ -182,6 +177,8 @@ class OpenAIURLBuilder
         'listAgentSessionItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/items', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'listAgentSessionTurns' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/turns', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'retrieveAgentSessionTurn' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/turns/{turn_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionTurnItems' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/turns/{turn_id}/items', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentSessionTraces' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/traces', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'listAgentSessionArtifacts' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/artifacts', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'retrieveAgentSessionArtifact' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/sessions/{session_id}/artifacts/{artifact_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'deleteAgentSessionArtifact' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/agents/sessions/{session_id}/artifacts/{artifact_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
@@ -222,12 +219,33 @@ class OpenAIURLBuilder
         'cancelUpload' => ['method' => self::HTTP_METHOD_POST, 'path' => '/uploads/{upload_id}/cancel', 'category' => 'uploads', 'body' => 'none'],
         'addUploadPart' => ['method' => self::HTTP_METHOD_POST, 'path' => '/uploads/{upload_id}/parts', 'category' => 'uploads', 'body' => 'multipart', 'fileFields' => ['data']],
 
+        // Webhooks
+        'createWebhookEndpoint' => ['method' => self::HTTP_METHOD_POST, 'path' => '/webhook_endpoints', 'category' => 'webhooks', 'body' => 'json'],
+        'listWebhookEndpoints' => ['method' => self::HTTP_METHOD_GET, 'path' => '/webhook_endpoints', 'category' => 'webhooks', 'body' => 'none'],
+        'listWebhookEventTypes' => ['method' => self::HTTP_METHOD_GET, 'path' => '/webhook_event_types', 'category' => 'webhooks', 'body' => 'none'],
+        'retrieveWebhookEndpoint' => ['method' => self::HTTP_METHOD_GET, 'path' => '/webhook_endpoints/{webhook_endpoint_id}', 'category' => 'webhooks', 'body' => 'none'],
+        'updateWebhookEndpoint' => ['method' => self::HTTP_METHOD_POST, 'path' => '/webhook_endpoints/{webhook_endpoint_id}', 'category' => 'webhooks', 'body' => 'json'],
+        'deleteWebhookEndpoint' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/webhook_endpoints/{webhook_endpoint_id}', 'category' => 'webhooks', 'body' => 'none'],
+        'rotateWebhookEndpointSecret' => ['method' => self::HTTP_METHOD_POST, 'path' => '/webhook_endpoints/{webhook_endpoint_id}/rotate_secret', 'category' => 'webhooks', 'body' => 'json'],
+        'testWebhookEndpoint' => ['method' => self::HTTP_METHOD_POST, 'path' => '/webhook_endpoints/{webhook_endpoint_id}/test', 'category' => 'webhooks', 'body' => 'json'],
+
+        // Workload Identity Federation
+        'exchangeWorkloadIdentityToken' => ['method' => self::HTTP_METHOD_POST, 'path' => '/oauth/token', 'category' => 'workload_identity', 'body' => 'json', 'origin' => 'auth.openai.com', 'basePath' => '/', 'authenticated' => false],
+        'exchangeX509WorkloadIdentityToken' => ['method' => self::HTTP_METHOD_POST, 'path' => '/oauth/token', 'category' => 'workload_identity', 'body' => 'json', 'origin' => 'mtls.auth.openai.com', 'basePath' => '/', 'authenticated' => false],
+
         // Admin API Keys
         'listAuditLogs' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/audit_logs', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'listAdminApiKeys' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/admin_api_keys', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'createAdminApiKey' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/admin_api_keys', 'category' => 'administration', 'body' => 'json', 'admin' => true],
         'retrieveAdminApiKey' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/admin_api_keys/{key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'deleteAdminApiKey' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/admin_api_keys/{key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+
+        // External Storage
+        'createExternalStorage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/external_storage', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'listExternalStorage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/external_storage', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'retrieveExternalStorage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/external_storage/{external_storage_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'deleteExternalStorage' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/external_storage/{external_storage_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'validateExternalStorage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/external_storage/{external_storage_id}/validate', 'category' => 'administration', 'body' => 'none', 'admin' => true],
 
         // Usage
         'getAudioSpeechesUsage' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/usage/audio_speeches', 'category' => 'administration', 'body' => 'none', 'admin' => true],
@@ -477,6 +495,9 @@ class OpenAIURLBuilder
      *     query?: array<string, bool|float|int|string>,
      *     streaming?: bool,
      *     admin?: bool,
+     *     origin?: string,
+     *     basePath?: string,
+     *     authenticated?: bool,
      *     deprecated?: bool
      * }>
      */
@@ -500,6 +521,9 @@ class OpenAIURLBuilder
      *     query?: array<string, bool|float|int|string>,
      *     streaming?: bool,
      *     admin?: bool,
+     *     origin?: string,
+     *     basePath?: string,
+     *     authenticated?: bool,
      *     deprecated?: bool
      * } The endpoint configuration.
      *
@@ -536,6 +560,8 @@ class OpenAIURLBuilder
     ): UriInterface {
         $endpoint = self::getEndpoint($key);
         $endpointPath = self::replacePathParameters($endpoint['path'], $parameters);
+        $origin = $origin !== '' ? $origin : ($endpoint['origin'] ?? '');
+        $basePath = $basePath !== '' ? $basePath : ($endpoint['basePath'] ?? '');
         $isAbsoluteOrigin = $origin !== '' && \preg_match('#^[a-z][a-z0-9+.-]*://#i', $origin) === 1;
 
         if ($isAbsoluteOrigin) {

@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.2.0 - 2026-10-06
+
+### Added
+
+- Added Decisions, Safety Cases, webhook endpoint and event-type APIs, organization external-storage management, Agents
+  session traces and turn items, and workload identity token exchange endpoints.
+- Added runnable examples for every new SDK method, including mTLS certificate configuration for X.509 workload
+  identity federation.
+
+### Changed
+
+- Corrected `cancelEvalRun` to use `POST /evals/{eval_id}/runs/{run_id}/cancel`.
+- Updated the README endpoint catalog and development dependencies for the current OpenAI API reference and PHP
+  toolchain.
+- Replaced the automatic commit-message release workflow with a manually dispatched, version-validated release that
+  reuses the complete validation suite and refuses duplicate tags or missing changelog entries.
+- Validation now tests PHP 8.1 with the lowest supported dependencies and PHP 8.5 with current dependencies. PHP 8.6
+  remains a non-blocking experimental job while it is under development.
+- Validation now enforces Composer metadata, dependency auditing, coding style, static analysis, and 100% statement,
+  method, and element coverage before a release can be created.
+- Removed the static Composer package version so releases derive their version exclusively from immutable Git tags.
+- Updated the README status badge to report the actively used release workflow.
+- Updated the README Responses and Agents examples for the current GPT-6 model family and made raw Responses output
+  handling robust when non-message output items precede generated text.
+
+### Removed
+
+- Removed the Videos API methods, examples, and fixture after OpenAI shut down the API on September 24, 2026. This is
+  a breaking change for consumers that called `createVideo`, `createVideoCharacter`, `retrieveVideoCharacter`,
+  `listVideos`, `retrieveVideo`, `deleteVideo`, `downloadVideoContent`, `createVideoEdit`, `createVideoExtension`, or
+  `createVideoRemix`.
+
 ## [4.1.0] - 2026-09-12
 
 ### Added

@@ -15,12 +15,14 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-require_once __DIR__ . '/../OpenAIFactory.php';
 
-// GET /videos/characters/{character_id}
-OpenAIFactory::request(
-    'retrieveVideoCharacter',
+require_once __DIR__ . '/../../OpenAIFactory.php';
+
+// GET /organization/external_storage
+OpenAIFactory::adminRequest(
+    'listExternalStorage',
     [
-        'character_id' => 'char_abc123',
+        'limit' => 20,
+        'order' => 'desc',
     ],
 );

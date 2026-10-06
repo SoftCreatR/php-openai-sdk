@@ -15,16 +15,17 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// POST /videos
+// POST /webhook_endpoints/{webhook_endpoint_id}
 OpenAIFactory::request(
-    'createVideo',
-    [],
+    'updateWebhookEndpoint',
     [
-        'model' => 'sora-2',
-        'prompt' => 'A paper airplane gliding over a sunlit library.',
-        'seconds' => '4',
-        'size' => '1280x720',
+        'webhook_endpoint_id' => 'we_abc123',
+    ],
+    [
+        'name' => 'Updated response handler',
+        'event_types' => ['response.completed', 'response.failed'],
     ],
 );

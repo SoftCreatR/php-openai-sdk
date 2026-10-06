@@ -15,12 +15,16 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// GET /videos/{video_id}/content
+// POST /oauth/token
 OpenAIFactory::request(
-    'downloadVideoContent',
+    'exchangeX509WorkloadIdentityToken',
     [
-        'video_id' => 'video_abc123',
+        'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+        'subject_token_type' => 'urn:openai:params:oauth:token-type:x509',
+        'identity_provider_id' => $_ENV['OPENAI_IDENTITY_PROVIDER_ID'] ?? '',
+        'service_account_id' => $_ENV['OPENAI_SERVICE_ACCOUNT_ID'] ?? '',
     ],
 );

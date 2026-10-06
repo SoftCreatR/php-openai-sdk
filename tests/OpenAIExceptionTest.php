@@ -20,14 +20,13 @@ namespace SoftCreatR\OpenAI\Tests;
 
 use Exception;
 use JsonException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
 
 use const JSON_THROW_ON_ERROR;
 
-/**
- * @covers \SoftCreatR\OpenAI\Exception\OpenAIException
- */
+#[CoversClass(OpenAIException::class)]
 final class OpenAIExceptionTest extends TestCase
 {
     /**

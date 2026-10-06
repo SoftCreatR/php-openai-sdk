@@ -22,6 +22,7 @@ use Exception;
 use GuzzleHttp\Psr7\HttpFactory;
 use GuzzleHttp\Psr7\Response;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -29,15 +30,18 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
 use ReflectionException;
 use SoftCreatR\OpenAI\Exception\OpenAIException;
+use SoftCreatR\OpenAI\Http\MultipartBodyBuilder;
+use SoftCreatR\OpenAI\Http\ServerSentEventDecoder;
 use SoftCreatR\OpenAI\Http\StreamingClientInterface;
 use SoftCreatR\OpenAI\OpenAI;
+use SoftCreatR\OpenAI\OpenAIURLBuilder;
 use Throwable;
 
-/**
- * @covers \SoftCreatR\OpenAI\Exception\OpenAIException
- * @covers \SoftCreatR\OpenAI\OpenAI
- * @covers \SoftCreatR\OpenAI\OpenAIURLBuilder
- */
+#[CoversClass(OpenAIException::class)]
+#[CoversClass(MultipartBodyBuilder::class)]
+#[CoversClass(ServerSentEventDecoder::class)]
+#[CoversClass(OpenAI::class)]
+#[CoversClass(OpenAIURLBuilder::class)]
 final class OpenAITest extends TestCase
 {
     /**
@@ -529,6 +533,29 @@ final class OpenAITest extends TestCase
         $this->openAI->createChatCompletion([
             'model' => 'gpt-5.4-mini',
             'messages' => [['role' => 'user', 'content' => 'Hello']],
+        ]);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testUnauthenticatedEndpointOmitsOpenAICredentials(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertFalse($request->hasHeader('Authorization'));
+            $this->assertFalse($request->hasHeader('OpenAI-Organization'));
+            $this->assertFalse($request->hasHeader('OpenAI-Project'));
+            $this->assertSame('/oauth/token', $request->getUri()->getPath());
+
+            return new Response(200, ['Content-Type' => 'application/json'], '{}');
+        });
+
+        $this->openAI->exchangeWorkloadIdentityToken([
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:jwt',
+            'subject_token' => 'external-token',
+            'identity_provider_id' => 'idp_abc123',
+            'service_account_id' => 'svcacct_abc123',
         ]);
     }
 

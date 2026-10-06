@@ -51,7 +51,17 @@ final class OpenAIFactory
         string $apiKey = '',
     ): OpenAI {
         $psr17Factory = new HttpFactory();
-        $httpClient = new Client(['stream' => true]);
+        $clientOptions = ['stream' => true];
+
+        if (($_ENV['OPENAI_CLIENT_CERT'] ?? '') !== '') {
+            $clientOptions['cert'] = $_ENV['OPENAI_CLIENT_CERT'];
+        }
+
+        if (($_ENV['OPENAI_CLIENT_KEY'] ?? '') !== '') {
+            $clientOptions['ssl_key'] = $_ENV['OPENAI_CLIENT_KEY'];
+        }
+
+        $httpClient = new Client($clientOptions);
 
         return new OpenAI(
             requestFactory: $psr17Factory,
@@ -88,9 +98,10 @@ final class OpenAIFactory
             $endpoint = OpenAIURLBuilder::getEndpoint($method);
             $useAdminKey = $useAdminKey || ($endpoint['admin'] ?? false);
             $keyName = $useAdminKey ? 'OPENAI_ADMIN_KEY' : 'OPENAI_API_KEY';
-            $apiKey = $_ENV[$keyName] ?? '';
+            $authenticated = $endpoint['authenticated'] ?? true;
+            $apiKey = $authenticated ? ($_ENV[$keyName] ?? '') : '';
 
-            if ($apiKey === '') {
+            if ($authenticated && $apiKey === '') {
                 throw new RuntimeException("Set {$keyName} in the project .env file before running this example.");
             }
 

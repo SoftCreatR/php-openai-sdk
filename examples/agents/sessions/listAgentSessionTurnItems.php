@@ -15,14 +15,15 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-require_once __DIR__ . '/../OpenAIFactory.php';
 
-// POST /videos/edits
+require_once __DIR__ . '/../../OpenAIFactory.php';
+
+// GET /agents/sessions/{session_id}/turns/{turn_id}/items
 OpenAIFactory::request(
-    'createVideoEdit',
-    [],
+    'listAgentSessionTurnItems',
     [
-        'prompt' => 'Change the lighting to golden hour.',
-        'video' => ['id' => 'video_abc123'],
+        'session_id' => 'sess_abc123',
+        'turn_id' => 'turn_abc123',
+        'limit' => 20,
     ],
 );

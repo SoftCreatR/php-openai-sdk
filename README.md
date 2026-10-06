@@ -1,6 +1,6 @@
 # OpenAI API SDK for PHP
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/SoftCreatR/php-openai-sdk/.github/workflows/validate-pr.yml?branch=main&label=tests)](https://github.com/SoftCreatR/php-openai-sdk/actions/workflows/validate-pr.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/SoftCreatR/php-openai-sdk/.github/workflows/create-release.yml?branch=main&label=release)](https://github.com/SoftCreatR/php-openai-sdk/actions/workflows/create-release.yml)
 [![Latest Release](https://img.shields.io/packagist/v/softcreatr/php-openai-sdk)](https://packagist.org/packages/softcreatr/php-openai-sdk)
 [![PHP](https://img.shields.io/packagist/dependency-v/softcreatr/php-openai-sdk/php)](composer.json)
 [![License](https://img.shields.io/badge/license-ISC-blue.svg)](LICENSE.md)
@@ -11,7 +11,8 @@ endpoint-specific beta headers, and webhook signature verification.
 
 ## Requirements
 
-- PHP 8.1 or newer. CI tests PHP 8.1, 8.2, 8.3, 8.4, and 8.5.
+- PHP 8.1 or newer. Validation tests PHP 8.1 with the lowest supported dependencies and PHP 8.5 with current
+  dependencies; PHP 8.6 is included as a non-blocking experimental job.
 - A PSR-17 request, stream, and URI factory.
 - A PSR-18 HTTP client.
 - The JSON extension.
@@ -54,33 +55,49 @@ Keep API keys on the server and out of source control. Organization and project 
 
 ## Responses API
 
-The Responses API is the recommended interface for new text and agentic integrations.
+The Responses API is the default interface for direct model requests, built-in tools, and stateful workflows.
 
 ```php
 use const JSON_THROW_ON_ERROR;
 
 $response = $openAI->createResponse([
-    'model' => 'gpt-5.4-mini',
+    'model' => 'gpt-6-luna',
     'input' => 'Give me a one-sentence summary of PSR-18.',
 ]);
 
 $result = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
-echo $result['output'][0]['content'][0]['text'];
+
+foreach ($result['output'] as $item) {
+    foreach ($item['content'] ?? [] as $content) {
+        if (($content['type'] ?? null) === 'output_text') {
+            echo $content['text'];
+        }
+    }
+}
 ```
 
 Endpoint methods return a PSR-7 `ResponseInterface`, including calls that deliver SSE events to a callback.
 
 ## Agents API
 
-The beta Agents API provides reusable agents, managed sessions, hosted environments, artifacts, subagents, and vaults.
-The SDK applies the required `OpenAI-Beta: agents=v1` header automatically.
+The beta Agents API provides the managed Codex harness, durable sessions, hosted environments, artifacts, subagents,
+and vaults. The SDK applies the required `OpenAI-Beta: agents=v1` header automatically.
 
 ```php
-$agent = $openAI->createAgent([
-    'name' => 'Documentation assistant',
-    'model' => 'gpt-5.4-mini',
-    'instructions' => 'Answer questions using the available project files.',
-]);
+$openAI->createAgentSession(
+    [
+        'agent' => [
+            'model' => 'gpt-6-astra',
+            'instructions' => 'Write clean code, run it, and report the actual output.',
+        ],
+        'environment' => ['type' => 'openai_hosted'],
+        'input' => 'Create tree.php and use it to print a readable directory tree.',
+        'stream' => true,
+    ],
+    static function (array $event): void {
+        echo json_encode($event, JSON_THROW_ON_ERROR) . PHP_EOL;
+    },
+);
 ```
 
 ## Arguments
@@ -132,7 +149,7 @@ comments, multiline data fields, final unterminated frames, and `[DONE]`.
 ```php
 $openAI->createResponse(
     [
-        'model' => 'gpt-5.4-mini',
+        'model' => 'gpt-6-luna',
         'input' => 'Write a short haiku about PHP.',
         'stream' => true,
     ],
@@ -205,7 +222,8 @@ if ($event['type'] === 'response.completed') {
 ```
 
 The default replay tolerance is 300 seconds. Invalid signatures throw `InvalidWebhookSignatureException`; valid
-signatures with invalid JSON throw `WebhookException`.
+signatures with invalid JSON throw `WebhookException`. The Webhooks methods in the endpoint catalog manage project
+webhook endpoints, rotate their signing secrets, and send test events.
 
 ## Examples
 
@@ -217,7 +235,8 @@ php examples/responses/createResponse.php
 ```
 
 Set `OPENAI_ADMIN_KEY` only when running examples under `examples/administration`. The Agents vault credential examples
-also read `MCP_BEARER_TOKEN`; keep that secret in `.env` and never commit it.
+also read `MCP_BEARER_TOKEN`. Workload identity examples use their dedicated identity variables and, for X.509,
+`OPENAI_CLIENT_CERT` and `OPENAI_CLIENT_KEY`. Keep all secrets in `.env` and never commit it.
 
 ## Supported Methods
 
@@ -239,6 +258,7 @@ intentionally absent. Distinct beta routes are registered separately from their 
 | `assignProjectUserRole` | `POST /projects/{project_id}/users/{user_id}/roles` | `json` | [PHP](examples/administration/project-users/assignProjectUserRole.php) |
 | `assignUserRole` | `POST /organization/users/{user_id}/roles` | `json` | [PHP](examples/administration/org-users/assignUserRole.php) |
 | `createAdminApiKey` | `POST /organization/admin_api_keys` | `json` | [PHP](examples/administration/admin-api-keys/createAdminApiKey.php) |
+| `createExternalStorage` | `POST /organization/external_storage` | `json` | [PHP](examples/administration/external-storage/createExternalStorage.php) |
 | `createGroup` | `POST /organization/groups` | `json` | [PHP](examples/administration/org-groups/createGroup.php) |
 | `createInvite` | `POST /organization/invites` | `json` | [PHP](examples/administration/invites/createInvite.php) |
 | `createOrganizationRole` | `POST /organization/roles` | `json` | [PHP](examples/administration/org-roles/createOrganizationRole.php) |
@@ -253,6 +273,7 @@ intentionally absent. Distinct beta routes are registered separately from their 
 | `deactivateProjectCertificates` | `POST /organization/projects/{project_id}/certificates/deactivate` | `json` | [PHP](examples/administration/certificates/deactivateProjectCertificates.php) |
 | `deleteAdminApiKey` | `DELETE /organization/admin_api_keys/{key_id}` | `none` | [PHP](examples/administration/admin-api-keys/deleteAdminApiKey.php) |
 | `deleteCertificate` | `DELETE /organization/certificates/{certificate_id}` | `none` | [PHP](examples/administration/certificates/deleteCertificate.php) |
+| `deleteExternalStorage` | `DELETE /organization/external_storage/{external_storage_id}` | `none` | [PHP](examples/administration/external-storage/deleteExternalStorage.php) |
 | `deleteGroup` | `DELETE /organization/groups/{group_id}` | `none` | [PHP](examples/administration/org-groups/deleteGroup.php) |
 | `deleteInvite` | `DELETE /organization/invites/{invite_id}` | `none` | [PHP](examples/administration/invites/deleteInvite.php) |
 | `deleteOrganizationRole` | `DELETE /organization/roles/{role_id}` | `none` | [PHP](examples/administration/org-roles/deleteOrganizationRole.php) |
@@ -281,6 +302,7 @@ intentionally absent. Distinct beta routes are registered separately from their 
 | `listAdminApiKeys` | `GET /organization/admin_api_keys` | `none` | [PHP](examples/administration/admin-api-keys/listAdminApiKeys.php) |
 | `listAuditLogs` | `GET /organization/audit_logs` | `none` | [PHP](examples/administration/audit-logs/listAuditLogs.php) |
 | `listCertificates` | `GET /organization/certificates` | `none` | [PHP](examples/administration/certificates/listCertificates.php) |
+| `listExternalStorage` | `GET /organization/external_storage` | `none` | [PHP](examples/administration/external-storage/listExternalStorage.php) |
 | `listGroupRoles` | `GET /organization/groups/{group_id}/roles` | `none` | [PHP](examples/administration/org-groups/listGroupRoles.php) |
 | `listGroupUsers` | `GET /organization/groups/{group_id}/users` | `none` | [PHP](examples/administration/org-groups/listGroupUsers.php) |
 | `listGroups` | `GET /organization/groups` | `none` | [PHP](examples/administration/org-groups/listGroups.php) |
@@ -310,6 +332,7 @@ intentionally absent. Distinct beta routes are registered separately from their 
 | `removeGroupUser` | `DELETE /organization/groups/{group_id}/users/{user_id}` | `none` | [PHP](examples/administration/org-groups/removeGroupUser.php) |
 | `removeProjectGroup` | `DELETE /organization/projects/{project_id}/groups/{group_id}` | `none` | [PHP](examples/administration/project-groups/removeProjectGroup.php) |
 | `retrieveAdminApiKey` | `GET /organization/admin_api_keys/{key_id}` | `none` | [PHP](examples/administration/admin-api-keys/retrieveAdminApiKey.php) |
+| `retrieveExternalStorage` | `GET /organization/external_storage/{external_storage_id}` | `none` | [PHP](examples/administration/external-storage/retrieveExternalStorage.php) |
 | `retrieveGroup` | `GET /organization/groups/{group_id}` | `none` | [PHP](examples/administration/org-groups/retrieveGroup.php) |
 | `retrieveGroupRole` | `GET /organization/groups/{group_id}/roles/{role_id}` | `none` | [PHP](examples/administration/org-groups/retrieveGroupRole.php) |
 | `retrieveGroupUser` | `GET /organization/groups/{group_id}/users/{user_id}` | `none` | [PHP](examples/administration/org-groups/retrieveGroupUser.php) |
@@ -348,6 +371,7 @@ intentionally absent. Distinct beta routes are registered separately from their 
 | `updateProjectSpendAlert` | `POST /organization/projects/{project_id}/spend_alerts/{alert_id}` | `json` | [PHP](examples/administration/project-spend-alerts/updateProjectSpendAlert.php) |
 | `updateProjectSpendLimit` | `POST /organization/projects/{project_id}/spend_limit` | `json` | [PHP](examples/administration/project-spend-limits/updateProjectSpendLimit.php) |
 | `uploadCertificate` | `POST /organization/certificates` | `json` | [PHP](examples/administration/certificates/uploadCertificate.php) |
+| `validateExternalStorage` | `POST /organization/external_storage/{external_storage_id}/validate` | `none` | [PHP](examples/administration/external-storage/validateExternalStorage.php) |
 
 ### Agents (Beta)
 
@@ -376,6 +400,8 @@ The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for the
 | `listAgentSessionSubagentTurnItems` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}/turns/{turn_id}/items` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagentTurnItems.php) |
 | `listAgentSessionSubagentTurns` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}/turns` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagentTurns.php) |
 | `listAgentSessionSubagents` | `GET /agents/sessions/{session_id}/subagents` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagents.php) |
+| `listAgentSessionTraces` | `GET /agents/sessions/{session_id}/traces` | `none` | [PHP](examples/agents/sessions/listAgentSessionTraces.php) |
+| `listAgentSessionTurnItems` | `GET /agents/sessions/{session_id}/turns/{turn_id}/items` | `none` | [PHP](examples/agents/sessions/listAgentSessionTurnItems.php) |
 | `listAgentSessionTurns` | `GET /agents/sessions/{session_id}/turns` | `none` | [PHP](examples/agents/sessions/listAgentSessionTurns.php) |
 | `listAgentSessions` | `GET /agents/sessions` | `none` | [PHP](examples/agents/sessions/listAgentSessions.php) |
 | `listAgents` | `GET /agents` | `none` | [PHP](examples/agents/definitions/listAgents.php) |
@@ -476,6 +502,12 @@ The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for the
 | `retrieveConversationItem` | `GET /conversations/{conversation_id}/items/{item_id}` | `none` | [PHP](examples/conversations/retrieveConversationItem.php) |
 | `updateConversation` | `POST /conversations/{conversation_id}` | `json` | [PHP](examples/conversations/updateConversation.php) |
 
+### Decisions
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `createDecision` | `POST /decisions` | `json` | [PHP](examples/decisions/createDecision.php) |
+
 ### Embeddings
 
 | SDK method | HTTP route | Request body | Example |
@@ -486,7 +518,7 @@ The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for the
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
-| `cancelEvalRun` | `POST /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/cancelEvalRun.php) |
+| `cancelEvalRun` | `POST /evals/{eval_id}/runs/{run_id}/cancel` | `none` | [PHP](examples/evals/runs/cancelEvalRun.php) |
 | `createEval` | `POST /evals` | `json` | [PHP](examples/evals/createEval.php) |
 | `createEvalRun` | `POST /evals/{eval_id}/runs` | `json` | [PHP](examples/evals/runs/createEvalRun.php) |
 | `deleteEval` | `DELETE /evals/{eval_id}` | `none` | [PHP](examples/evals/deleteEval.php) |
@@ -605,6 +637,7 @@ These methods select the distinct beta schema by adding `?beta=true`; stable Res
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
 | `retrieveSafetyAlert` | `GET /safety/alerts/{id}` | `none` | [PHP](examples/safety/retrieveSafetyAlert.php) |
+| `retrieveSafetyCase` | `GET /safety/cases/{id}` | `none` | [PHP](examples/safety/retrieveSafetyCase.php) |
 
 ### Skills
 
@@ -652,20 +685,25 @@ These methods select the distinct beta schema by adding `?beta=true`; stable Res
 | `searchVectorStore` | `POST /vector_stores/{vector_store_id}/search` | `json` | [PHP](examples/vector-stores/searchVectorStore.php) |
 | `updateVectorStoreFileAttributes` | `POST /vector_stores/{vector_store_id}/files/{file_id}` | `json` | [PHP](examples/vector-store-files/updateVectorStoreFileAttributes.php) |
 
-### Videos
+### Webhooks
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
-| `createVideo` | `POST /videos` | `json` | [PHP](examples/videos/createVideo.php) |
-| `createVideoCharacter` | `POST /videos/characters` | `multipart` | [PHP](examples/videos/createVideoCharacter.php) |
-| `createVideoEdit` | `POST /videos/edits` | `json` | [PHP](examples/videos/createVideoEdit.php) |
-| `createVideoExtension` | `POST /videos/extensions` | `json` | [PHP](examples/videos/createVideoExtension.php) |
-| `createVideoRemix` | `POST /videos/{video_id}/remix` | `json` | [PHP](examples/videos/createVideoRemix.php) |
-| `deleteVideo` | `DELETE /videos/{video_id}` | `none` | [PHP](examples/videos/deleteVideo.php) |
-| `downloadVideoContent` | `GET /videos/{video_id}/content` | `none` | [PHP](examples/videos/downloadVideoContent.php) |
-| `listVideos` | `GET /videos` | `none` | [PHP](examples/videos/listVideos.php) |
-| `retrieveVideo` | `GET /videos/{video_id}` | `none` | [PHP](examples/videos/retrieveVideo.php) |
-| `retrieveVideoCharacter` | `GET /videos/characters/{character_id}` | `none` | [PHP](examples/videos/retrieveVideoCharacter.php) |
+| `createWebhookEndpoint` | `POST /webhook_endpoints` | `json` | [PHP](examples/webhooks/createWebhookEndpoint.php) |
+| `deleteWebhookEndpoint` | `DELETE /webhook_endpoints/{webhook_endpoint_id}` | `none` | [PHP](examples/webhooks/deleteWebhookEndpoint.php) |
+| `listWebhookEndpoints` | `GET /webhook_endpoints` | `none` | [PHP](examples/webhooks/listWebhookEndpoints.php) |
+| `listWebhookEventTypes` | `GET /webhook_event_types` | `none` | [PHP](examples/webhooks/listWebhookEventTypes.php) |
+| `retrieveWebhookEndpoint` | `GET /webhook_endpoints/{webhook_endpoint_id}` | `none` | [PHP](examples/webhooks/retrieveWebhookEndpoint.php) |
+| `rotateWebhookEndpointSecret` | `POST /webhook_endpoints/{webhook_endpoint_id}/rotate_secret` | `json` | [PHP](examples/webhooks/rotateWebhookEndpointSecret.php) |
+| `testWebhookEndpoint` | `POST /webhook_endpoints/{webhook_endpoint_id}/test` | `json` | [PHP](examples/webhooks/testWebhookEndpoint.php) |
+| `updateWebhookEndpoint` | `POST /webhook_endpoints/{webhook_endpoint_id}` | `json` | [PHP](examples/webhooks/updateWebhookEndpoint.php) |
+
+### Workload Identity Federation
+
+| SDK method | HTTP route | Request body | Example |
+| --- | --- | --- | --- |
+| `exchangeWorkloadIdentityToken` | `POST https://auth.openai.com/oauth/token` | `json` | [PHP](examples/workload-identity/exchangeWorkloadIdentityToken.php) |
+| `exchangeX509WorkloadIdentityToken` | `POST https://mtls.auth.openai.com/oauth/token` | `json` | [PHP](examples/workload-identity/exchangeX509WorkloadIdentityToken.php) |
 
 ## Custom API Origin
 
@@ -685,13 +723,14 @@ $openAI = new OpenAI(
 
 ## Deprecated And Removed APIs
 
-Version 4 deliberately does not expose APIs that OpenAI classifies as legacy or has removed: classic Completions,
-Assistants/Threads/Runs/Messages, deprecated Realtime session-token routes, and DALL-E image variations. Use Responses
-and Conversations instead of Assistants, and Realtime client-secret methods instead of the old session-token routes.
+The SDK deliberately does not expose APIs that OpenAI classifies as legacy or has removed: classic Completions,
+Assistants/Threads/Runs/Messages, deprecated Realtime session-token routes, DALL-E image variations, and the Videos
+API. Use Responses and Conversations instead of Assistants, and Realtime client-secret methods instead of the old
+session-token routes.
 
 The self-serve fine-tuning routes remain temporarily available and are marked deprecated because eligible existing
 customers can still use them during OpenAI's transition. See OpenAI's
-[deprecation schedule](https://developers.openai.com/api/docs/deprecations) and the [v4 migration notes](CHANGELOG.md)
+[deprecation schedule](https://developers.openai.com/api/docs/deprecations) and the [migration notes](CHANGELOG.md)
 before upgrading.
 
 ## Development

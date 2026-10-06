@@ -20,16 +20,15 @@ namespace SoftCreatR\OpenAI\Tests\Webhook;
 
 use InvalidArgumentException;
 use JsonException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use SoftCreatR\OpenAI\Webhook\InvalidWebhookSignatureException;
 use SoftCreatR\OpenAI\Webhook\WebhookException;
 use SoftCreatR\OpenAI\Webhook\WebhookVerifier;
 
-/**
- * @covers \SoftCreatR\OpenAI\Webhook\InvalidWebhookSignatureException
- * @covers \SoftCreatR\OpenAI\Webhook\WebhookException
- * @covers \SoftCreatR\OpenAI\Webhook\WebhookVerifier
- */
+#[CoversClass(InvalidWebhookSignatureException::class)]
+#[CoversClass(WebhookException::class)]
+#[CoversClass(WebhookVerifier::class)]
 final class WebhookVerifierTest extends TestCase
 {
     private const RAW_BODY = '{"object":"event","id":"evt_test","type":"response.completed","data":{"id":"resp_test"}}';

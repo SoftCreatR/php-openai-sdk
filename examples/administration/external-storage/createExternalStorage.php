@@ -15,15 +15,19 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-require_once __DIR__ . '/../OpenAIFactory.php';
 
-// POST /videos/{video_id}/remix
-OpenAIFactory::request(
-    'createVideoRemix',
+require_once __DIR__ . '/../../OpenAIFactory.php';
+
+// POST /organization/external_storage
+OpenAIFactory::adminRequest(
+    'createExternalStorage',
+    [],
     [
-        'video_id' => 'video_abc123',
-    ],
-    [
-        'prompt' => 'Render the scene as stop-motion animation.',
+        'project_id' => $_ENV['OPENAI_PROJECT_ID'] ?? 'proj_abc123',
+        'provider' => [
+            'type' => 'aws',
+            'bucket' => 'customer-logs',
+            'role_arn' => 'arn:aws:iam::123456789012:role/OpenAIExternalStorageRole',
+        ],
     ],
 );

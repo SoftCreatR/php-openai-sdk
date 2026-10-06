@@ -15,12 +15,13 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-require_once __DIR__ . '/../OpenAIFactory.php';
 
-// DELETE /videos/{video_id}
-OpenAIFactory::request(
-    'deleteVideo',
+require_once __DIR__ . '/../../OpenAIFactory.php';
+
+// GET /organization/external_storage/{external_storage_id}
+OpenAIFactory::adminRequest(
+    'retrieveExternalStorage',
     [
-        'video_id' => 'video_abc123',
+        'external_storage_id' => 'extstorage_abc123',
     ],
 );

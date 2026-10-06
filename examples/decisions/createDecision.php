@@ -15,13 +15,21 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-require_once __DIR__ . '/../../OpenAIFactory.php';
 
-// POST /evals/{eval_id}/runs/{run_id}/cancel
+require_once __DIR__ . '/../OpenAIFactory.php';
+
+// POST /decisions
 OpenAIFactory::request(
-    'cancelEvalRun',
+    'createDecision',
     [
-        'eval_id' => 'eval_abc123',
-        'run_id' => 'evalrun_abc123',
+        'model' => 'gpt-6-luna',
+        'input' => 'The package arrived with a broken screen.',
+        'questions' => [
+            [
+                'type' => 'predicate',
+                'name' => 'damaged',
+                'instructions' => 'Does the customer report a damaged item?',
+            ],
+        ],
     ],
 );

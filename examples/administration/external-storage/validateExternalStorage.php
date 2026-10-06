@@ -15,15 +15,13 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-require_once __DIR__ . '/../OpenAIFactory.php';
 
-// POST /videos/extensions
-OpenAIFactory::request(
-    'createVideoExtension',
-    [],
+require_once __DIR__ . '/../../OpenAIFactory.php';
+
+// POST /organization/external_storage/{external_storage_id}/validate
+OpenAIFactory::adminRequest(
+    'validateExternalStorage',
     [
-        'prompt' => 'Continue the camera movement toward the window.',
-        'seconds' => '4',
-        'video' => ['id' => 'video_abc123'],
+        'external_storage_id' => 'extstorage_abc123',
     ],
 );

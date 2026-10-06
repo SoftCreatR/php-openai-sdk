@@ -20,6 +20,7 @@ namespace SoftCreatR\OpenAI\Tests;
 
 use GuzzleHttp\Psr7\HttpFactory;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionException;
@@ -27,9 +28,7 @@ use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
 use const PHP_QUERY_RFC3986;
 
-/**
- * @covers \SoftCreatR\OpenAI\OpenAIURLBuilder
- */
+#[CoversClass(OpenAIURLBuilder::class)]
 final class OpenAIURLBuilderTest extends TestCase
 {
     /**
@@ -93,6 +92,7 @@ final class OpenAIURLBuilderTest extends TestCase
         $this->assertArrayNotHasKey('createImageVariation', $endpoints);
         $this->assertArrayNotHasKey('createRealtimeSession', $endpoints);
         $this->assertArrayNotHasKey('createRealtimeTranscriptionSession', $endpoints);
+        $this->assertArrayNotHasKey('createVideo', $endpoints);
 
         $routes = [];
 
@@ -120,12 +120,14 @@ final class OpenAIURLBuilderTest extends TestCase
             $query = isset($endpoint['query'])
                 ? '?' . \http_build_query($endpoint['query'], '', '&', PHP_QUERY_RFC3986)
                 : '';
-            $route = $endpoint['method'] . ' ' . $endpoint['path'] . $query;
+            $route = ($endpoint['origin'] ?? OpenAIURLBuilder::ORIGIN)
+                . ' ' . $endpoint['method'] . ' ' . $endpoint['path'] . $query;
             $this->assertArrayNotHasKey($route, $routes, "Duplicate route registered by {$name}.");
             $routes[$route] = true;
 
             $this->assertFalse(\str_starts_with($endpoint['path'], '/assistants'));
             $this->assertFalse(\str_starts_with($endpoint['path'], '/threads'));
+            $this->assertFalse(\str_starts_with($endpoint['path'], '/videos'));
             $this->assertNotContains($endpoint['path'], [
                 '/completions',
                 '/images/variations',
@@ -136,10 +138,14 @@ final class OpenAIURLBuilderTest extends TestCase
         $this->assertTrue($endpoints['createFineTuningJob']['deprecated']);
         $this->assertSame(['OpenAI-Beta' => 'agents=v1'], $endpoints['createAgent']['headers']);
         $this->assertSame(['beta' => 'true'], $endpoints['createBetaResponse']['query']);
-        $this->assertTrue($endpoints['streamAgentSessionEvents']['streaming']);
         $this->assertArrayHasKey('createEval', $endpoints);
         $this->assertArrayHasKey('createLiveSession', $endpoints);
-        $this->assertArrayHasKey('createVideo', $endpoints);
+        $this->assertArrayHasKey('createDecision', $endpoints);
+        $this->assertArrayHasKey('createExternalStorage', $endpoints);
+        $this->assertArrayHasKey('createWebhookEndpoint', $endpoints);
+        $this->assertArrayHasKey('listWebhookEventTypes', $endpoints);
+        $this->assertArrayHasKey('exchangeWorkloadIdentityToken', $endpoints);
+        $this->assertSame('/evals/{eval_id}/runs/{run_id}/cancel', $endpoints['cancelEvalRun']['path']);
     }
 
     public function testCreateUrlEncodesPathSegments(): void
@@ -171,5 +177,19 @@ final class OpenAIURLBuilderTest extends TestCase
 
         $this->assertSame('http://localhost:8080/openai/v1/models', (string) $uri);
         $this->assertSame('http://localhost:8080/compatible/v1/models', (string) $overridden);
+    }
+
+    public function testCreateUrlSupportsEndpointSpecificOrigins(): void
+    {
+        $uriFactory = new HttpFactory();
+
+        $this->assertSame(
+            'https://auth.openai.com/oauth/token',
+            (string) OpenAIURLBuilder::createUrl($uriFactory, 'exchangeWorkloadIdentityToken'),
+        );
+        $this->assertSame(
+            'https://mtls.auth.openai.com/oauth/token',
+            (string) OpenAIURLBuilder::createUrl($uriFactory, 'exchangeX509WorkloadIdentityToken'),
+        );
     }
 }
