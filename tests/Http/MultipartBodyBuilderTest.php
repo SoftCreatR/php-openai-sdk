@@ -158,7 +158,7 @@ final class MultipartBodyBuilderTest extends TestCase
     public function testRejectsUnreadableFilePath(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('must reference a readable file path');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('must reference a readable file path', '/') . '/');
 
         (new MultipartBodyBuilder(new HttpFactory()))->build([
             'custom_upload' => __DIR__ . '/missing-file',
@@ -171,7 +171,7 @@ final class MultipartBodyBuilderTest extends TestCase
     public function testRejectsInvalidBoundary(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('boundary is invalid');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('boundary is invalid', '/') . '/');
 
         (new MultipartBodyBuilder(new HttpFactory()))->build([], "boundary\r\nInjected: true", []);
     }
@@ -182,7 +182,7 @@ final class MultipartBodyBuilderTest extends TestCase
     public function testRejectsInvalidFileFieldName(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('file field names must be non-empty strings');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('file field names must be non-empty strings', '/') . '/');
 
         (new MultipartBodyBuilder(new HttpFactory()))->build([], 'OpenAI-test-boundary', [null]);
     }
@@ -193,7 +193,7 @@ final class MultipartBodyBuilderTest extends TestCase
     public function testRejectsUnsupportedFieldValue(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Multipart field 'metadata'");
+        $this->expectExceptionMessageMatches('/' . \preg_quote("Multipart field 'metadata'", '/') . '/');
 
         (new MultipartBodyBuilder(new HttpFactory()))->build([
             'metadata' => new stdClass(),
@@ -206,7 +206,7 @@ final class MultipartBodyBuilderTest extends TestCase
     public function testRejectsFailedTemporaryStreamCreation(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to create a temporary multipart stream');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Unable to create a temporary multipart stream', '/') . '/');
 
         (new MultipartBodyBuilder(
             new HttpFactory(),
@@ -224,7 +224,7 @@ final class MultipartBodyBuilderTest extends TestCase
 
         try {
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage('Unable to rewind the multipart stream');
+            $this->expectExceptionMessageMatches('/' . \preg_quote('Unable to rewind the multipart stream', '/') . '/');
 
             (new MultipartBodyBuilder(
                 new HttpFactory(),
@@ -245,7 +245,7 @@ final class MultipartBodyBuilderTest extends TestCase
 
         try {
             $this->expectException(InvalidArgumentException::class);
-            $this->expectExceptionMessage('Unable to open the file');
+            $this->expectExceptionMessageMatches('/' . \preg_quote('Unable to open the file', '/') . '/');
 
             (new MultipartBodyBuilder(
                 new HttpFactory(),
@@ -270,7 +270,7 @@ final class MultipartBodyBuilderTest extends TestCase
 
         try {
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage('Unable to read the file');
+            $this->expectExceptionMessageMatches('/' . \preg_quote('Unable to read the file', '/') . '/');
 
             (new MultipartBodyBuilder(
                 new HttpFactory(),
@@ -308,7 +308,7 @@ final class MultipartBodyBuilderTest extends TestCase
             $method = TestHelper::getPrivateMethod($builder, 'writeAll');
 
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessage('Unable to write to the multipart stream');
+            $this->expectExceptionMessageMatches('/' . \preg_quote('Unable to write to the multipart stream', '/') . '/');
             $method->invoke($builder, $resource, 'contents');
         } finally {
             \fclose($resource);

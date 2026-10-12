@@ -103,7 +103,7 @@ final class OpenAITest extends TestCase
     public function testInvalidFirstArgumentInCall(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('First argument must be an array of parameters.');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('First argument must be an array of parameters.', '/') . '/');
 
         $this->openAI->__call('createChatCompletion', ['invalid_argument']);
     }
@@ -147,7 +147,7 @@ final class OpenAITest extends TestCase
         });
 
         $this->expectException(OpenAIException::class);
-        $this->expectExceptionMessage('Bad Request');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Bad Request', '/') . '/');
 
         // Pass options as the second argument
         $this->openAI->createChatCompletion([], [
@@ -171,7 +171,7 @@ final class OpenAITest extends TestCase
         );
 
         $this->expectException(OpenAIException::class);
-        $this->expectExceptionMessage('Client error');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Client error', '/') . '/');
 
         // Pass options as the second argument
         $this->openAI->createChatCompletion([], [
@@ -195,7 +195,7 @@ final class OpenAITest extends TestCase
         });
 
         $this->expectException(OpenAIException::class);
-        $this->expectExceptionMessage('Bad Request');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Bad Request', '/') . '/');
 
         $this->openAI->createChatCompletion(
             [],
@@ -296,7 +296,7 @@ final class OpenAITest extends TestCase
         );
 
         $this->expectException(OpenAIException::class);
-        $this->expectExceptionMessage('Client error in streaming');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Client error in streaming', '/') . '/');
 
         $this->openAI->createChatCompletion(
             [],
@@ -762,7 +762,7 @@ final class OpenAITest extends TestCase
     public function testRejectsMoreThanThreeEndpointArguments(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Endpoint calls accept at most three arguments.');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Endpoint calls accept at most three arguments.', '/') . '/');
 
         $this->openAI->__call('listModels', [[], [], static fn() => null, []]);
     }
@@ -774,7 +774,7 @@ final class OpenAITest extends TestCase
     public function testRejectsANonArrayNonCallableSecondArgument(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Second argument must be an array or callable.');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Second argument must be an array or callable.', '/') . '/');
 
         $this->openAI->__call('listModels', [[], 'invalid']);
     }
@@ -786,7 +786,7 @@ final class OpenAITest extends TestCase
     public function testRejectsAThirdArgumentWithoutASecondArray(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Third argument must be a stream callback.');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Third argument must be a stream callback.', '/') . '/');
 
         $this->openAI->__call('listModels', [[], static fn() => null, static fn() => null]);
     }
@@ -818,7 +818,7 @@ final class OpenAITest extends TestCase
     public function testRejectsInvalidCustomHeadersInTheFirstArgument(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('customHeaders must be an array.');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('customHeaders must be an array.', '/') . '/');
 
         $this->openAI->listModels(['customHeaders' => 'invalid']);
     }
@@ -829,7 +829,7 @@ final class OpenAITest extends TestCase
     public function testRejectsInvalidCustomHeadersInTheSecondArgument(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('customHeaders must be an array.');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('customHeaders must be an array.', '/') . '/');
 
         $this->openAI->createChatCompletion([], ['customHeaders' => 'invalid']);
     }
@@ -997,6 +997,152 @@ final class OpenAITest extends TestCase
         ]);
 
         $this->assertSame(2, $requests);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testCreatesPrewarmedAgentEnvironment(): void
+    {
+        $body = [
+            'environment' => [
+                'type' => 'openai_hosted',
+                'network' => ['access' => 'disabled'],
+            ],
+        ];
+        $this->sendRequestMock(function (RequestInterface $request) use ($body) {
+            $this->assertSame('POST', $request->getMethod());
+            $this->assertSame('/v1/agents/environments', $request->getUri()->getPath());
+            $this->assertSame('agents=v1', $request->getHeaderLine('OpenAI-Beta'));
+            $this->assertSame('', $request->getUri()->getQuery());
+            $this->assertSame(
+                $body,
+                \json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR),
+            );
+
+            return new Response(201, [], '{"id":"env_123","status":"pending"}');
+        });
+
+        $response = $this->openAI->createAgentEnvironment($body);
+
+        $this->assertNotNull($response);
+        $this->assertSame(201, $response->getStatusCode());
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testListsPrewarmedAgentEnvironments(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertSame('GET', $request->getMethod());
+            $this->assertSame('/v1/agents/environments', $request->getUri()->getPath());
+            $this->assertSame('agents=v1', $request->getHeaderLine('OpenAI-Beta'));
+            $this->assertSame(
+                'type=openai_hosted&limit=20&after=env%2F123',
+                $request->getUri()->getQuery(),
+            );
+            $this->assertSame('', (string) $request->getBody());
+
+            return new Response(200, [], '{"object":"list","data":[]}');
+        });
+
+        $response = $this->openAI->listAgentEnvironments([
+            'type' => 'openai_hosted',
+            'limit' => 20,
+            'after' => 'env/123',
+        ]);
+
+        $this->assertNotNull($response);
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testUpdatesVaultWithCombinedAndLegacyArguments(): void
+    {
+        $body = ['name' => null, 'metadata' => ['team' => 'support']];
+        $requests = 0;
+        $this->sendRequestMock(function (RequestInterface $request) use ($body, &$requests) {
+            ++$requests;
+            $this->assertSame('POST', $request->getMethod());
+            $this->assertSame('/v1/vaults/vault%2F123', $request->getUri()->getPath());
+            $this->assertSame('agents=v1', $request->getHeaderLine('OpenAI-Beta'));
+            $this->assertSame('', $request->getUri()->getQuery());
+            $this->assertSame(
+                $body,
+                \json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR),
+            );
+
+            return new Response(200, [], '{"id":"vault/123","name":null}');
+        });
+
+        $this->openAI->updateVault(['vault_id' => 'vault/123'] + $body);
+        $this->openAI->updateVault(['vault_id' => 'vault/123'], $body);
+
+        $this->assertSame(2, $requests);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testDecisionsUsageEncodesGroupingAsQueryParameters(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertSame('GET', $request->getMethod());
+            $this->assertSame('/v1/organization/usage/decisions', $request->getUri()->getPath());
+            $this->assertSame('', $request->getHeaderLine('OpenAI-Beta'));
+            $this->assertSame(
+                'start_time=1791763200&bucket_width=1d&limit=2&group_by%5B0%5D=project_id&group_by%5B1%5D=model',
+                $request->getUri()->getQuery(),
+            );
+            $this->assertSame('', (string) $request->getBody());
+
+            return new Response(200, [], '{"object":"page","data":[],"has_more":false}');
+        });
+
+        $response = $this->openAI->getDecisionsUsage([
+            'start_time' => 1791763200,
+            'bucket_width' => '1d',
+            'limit' => 2,
+            'group_by' => ['project_id', 'model'],
+        ]);
+
+        $this->assertNotNull($response);
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testResponsesPreserveNewRequestAndResponseFields(): void
+    {
+        $rawResponse = new Response(
+            200,
+            ['Content-Type' => 'application/json', 'x-request-id' => 'req_123'],
+            '{"output":[{"type":"future_output_type","value":true}],"future_field":{"enabled":true}}',
+        );
+        $this->sendRequestMock(function (RequestInterface $request) use ($rawResponse) {
+            $body = \json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR);
+
+            $this->assertSame('gpt-6.1-sol', $body['model']);
+            $this->assertSame('ultrafast', $body['service_tier']);
+            $this->assertTrue($body['future_request_field']);
+
+            return $rawResponse;
+        });
+
+        $response = $this->openAI->createResponse([
+            'model' => 'gpt-6.1-sol',
+            'input' => 'Hello.',
+            'service_tier' => 'ultrafast',
+            'future_request_field' => true,
+        ]);
+
+        $this->assertSame($rawResponse, $response);
+        $this->assertSame(0, $response->getBody()->tell());
+        $this->assertSame('req_123', $response->getHeaderLine('x-request-id'));
     }
 
     /**

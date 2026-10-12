@@ -89,7 +89,7 @@ final class WebhookVerifierTest extends TestCase
         $headers = $this->headers($timestamp, $this->signature(self::RAW_BODY, $timestamp));
 
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('signature is invalid');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('signature is invalid', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY . "\n", $headers);
     }
@@ -99,7 +99,7 @@ final class WebhookVerifierTest extends TestCase
         $timestamp = \time();
 
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('signature is invalid');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('signature is invalid', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY, $this->headers($timestamp, 'v1,invalid'));
     }
@@ -107,7 +107,7 @@ final class WebhookVerifierTest extends TestCase
     public function testRejectsMissingRequiredHeaders(): void
     {
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('webhook-id header is missing');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('webhook-id header is missing', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY, []);
     }
@@ -117,7 +117,7 @@ final class WebhookVerifierTest extends TestCase
         $timestamp = \time() - WebhookVerifier::DEFAULT_TOLERANCE - 1;
 
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('timestamp is too old');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('timestamp is too old', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY, $this->headers($timestamp));
     }
@@ -127,7 +127,7 @@ final class WebhookVerifierTest extends TestCase
         $timestamp = \time() + WebhookVerifier::DEFAULT_TOLERANCE + 1;
 
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('timestamp is too new');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('timestamp is too new', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY, $this->headers($timestamp));
     }
@@ -147,7 +147,7 @@ final class WebhookVerifierTest extends TestCase
     public function testRejectsMalformedTimestampsBeforeSignatureComparison(): void
     {
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('timestamp is invalid');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('timestamp is invalid', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY, [
             'webhook-id' => self::WEBHOOK_ID,
@@ -165,7 +165,7 @@ final class WebhookVerifierTest extends TestCase
         $timestamp = \time();
 
         $this->expectException(WebhookException::class);
-        $this->expectExceptionMessage('payload must be a JSON object');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('payload must be a JSON object', '/') . '/');
 
         $this->verifier()->unwrap($rawBody, $this->headers($timestamp, $this->signature($rawBody, $timestamp)));
     }
@@ -178,7 +178,7 @@ final class WebhookVerifierTest extends TestCase
         $timestamp = \time();
 
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('webhook-id header is invalid');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('webhook-id header is invalid', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY, [
             'webhook-id' => null,
@@ -195,7 +195,7 @@ final class WebhookVerifierTest extends TestCase
         $timestamp = \time();
 
         $this->expectException(InvalidWebhookSignatureException::class);
-        $this->expectExceptionMessage('webhook-id header is invalid');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('webhook-id header is invalid', '/') . '/');
 
         $this->verifier()->verify(self::RAW_BODY, [
             'webhook-id' => [self::WEBHOOK_ID, self::WEBHOOK_ID],
@@ -221,7 +221,7 @@ final class WebhookVerifierTest extends TestCase
     public function testRejectsANegativeTimestampTolerance(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('tolerance must not be negative');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('tolerance must not be negative', '/') . '/');
 
         new WebhookVerifier('whsec_' . \base64_encode(self::SECRET), -1);
     }
@@ -229,7 +229,7 @@ final class WebhookVerifierTest extends TestCase
     public function testRejectsAnInvalidSigningSecret(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('valid base64-encoded OpenAI signing secret');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('valid base64-encoded OpenAI signing secret', '/') . '/');
 
         new WebhookVerifier('whsec_not base64');
     }

@@ -17,6 +17,7 @@
  */
 require_once __DIR__ . '/../../OpenAIFactory.php';
 
+// Deprecated upstream: read-only October 31, 2026; shutdown November 30, 2026.
 // GET /evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}
 OpenAIFactory::request(
     'retrieveEvalRunOutputItem',

@@ -55,7 +55,7 @@ final class OpenAIURLBuilderTest extends TestCase
     public function testGetEndpointWithInvalidKey(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid OpenAI URL key "invalidKey".');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Invalid OpenAI URL key "invalidKey".', '/') . '/');
 
         OpenAIURLBuilder::getEndpoint('invalidKey');
     }
@@ -66,7 +66,7 @@ final class OpenAIURLBuilderTest extends TestCase
     public function testCreateUrlWithMissingPathParameter(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Missing path parameter "model".');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Missing path parameter "model".', '/') . '/');
 
         $uriFactory = new HttpFactory();
         OpenAIURLBuilder::createUrl($uriFactory, 'retrieveModel');
@@ -78,7 +78,7 @@ final class OpenAIURLBuilderTest extends TestCase
     public function testCreateUrlWithNonScalarPathParameter(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Parameter "model" must be a scalar value, array given.');
+        $this->expectExceptionMessageMatches('/' . \preg_quote('Parameter "model" must be a scalar value, array given.', '/') . '/');
 
         $uriFactory = new HttpFactory();
         OpenAIURLBuilder::createUrl($uriFactory, 'retrieveModel', ['model' => ['not', 'scalar']]);
@@ -117,6 +117,10 @@ final class OpenAIURLBuilderTest extends TestCase
                 $this->assertTrue($endpoint['streaming'], $name);
             }
 
+            if ($endpoint['category'] === 'evals') {
+                $this->assertTrue($endpoint['deprecated'], $name);
+            }
+
             $query = isset($endpoint['query'])
                 ? '?' . \http_build_query($endpoint['query'], '', '&', PHP_QUERY_RFC3986)
                 : '';
@@ -141,6 +145,10 @@ final class OpenAIURLBuilderTest extends TestCase
         $this->assertArrayHasKey('createEval', $endpoints);
         $this->assertArrayHasKey('createLiveSession', $endpoints);
         $this->assertArrayHasKey('createDecision', $endpoints);
+        $this->assertSame(['OpenAI-Beta' => 'agents=v1'], $endpoints['createAgentEnvironment']['headers']);
+        $this->assertSame(['OpenAI-Beta' => 'agents=v1'], $endpoints['listAgentEnvironments']['headers']);
+        $this->assertSame(['OpenAI-Beta' => 'agents=v1'], $endpoints['updateVault']['headers']);
+        $this->assertTrue($endpoints['getDecisionsUsage']['admin']);
         $this->assertArrayHasKey('createExternalStorage', $endpoints);
         $this->assertArrayHasKey('createWebhookEndpoint', $endpoints);
         $this->assertArrayHasKey('listWebhookEventTypes', $endpoints);

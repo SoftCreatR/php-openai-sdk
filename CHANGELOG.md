@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.3.0 - 2026-10-12
+
+### Added
+
+- Added creation and listing of prewarmed Agents environments, vault updates, and Decisions usage reporting, with
+  grouped runnable examples, README catalog entries, and IDE method annotations.
+- Added a Responses example for GPT-6.1 Sol's Ultrafast service tier.
+- Added optional `ResponseContract`, `JsonResponse`, and `ModelResponse` helpers for explicit JSON decoding, response
+  metadata, readonly DTO fields, aggregated output text, and refusals. Existing endpoint return values are unchanged.
+- Added generic array and raw-JSON mapper callbacks, with an optional JSONPayloadContract integration example and
+  fixture. JSONPayloadContract is suggested rather than required; only that optional dependency requires PHP 8.3.
+
+### Changed
+
+- Marked Evals routes deprecated while retaining them for compatibility. OpenAI plans to make Evals read-only on
+  October 31, 2026 and shut down the API on November 30, 2026.
+- Documented response decoding, application-owned DTOs and validation, and forward compatibility with new response
+  properties and streaming events.
+- Replaced deprecated PHPUnit exception-message assertions with compatible escaped regex assertions.
+
 ## 4.2.0 - 2026-10-06
 
 ### Added

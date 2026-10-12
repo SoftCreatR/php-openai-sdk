@@ -63,7 +63,7 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null cancelBatch(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null cancelBetaResponse(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null cancelChatKitSession(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null cancelEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null cancelEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null cancelFineTuning(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null cancelResponse(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null cancelUpload(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
@@ -75,6 +75,7 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null countResponseInputTokens(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createAdminApiKey(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createAgent(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null createAgentEnvironment(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createAgentEnvironmentFile(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createAgentEnvironmentTemplate(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createAgentSession(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
@@ -90,8 +91,8 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null createConversationItems(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createDecision(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createEmbedding(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null createEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null createEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null createEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
+ * @method ResponseInterface|null createEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null createExternalStorage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null createFineTuningCheckpointPermission(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null createFineTuningJob(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
@@ -142,8 +143,8 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null deleteContainerFile(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null deleteConversation(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null deleteConversationItem(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null deleteEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null deleteEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null deleteEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
+ * @method ResponseInterface|null deleteEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null deleteExternalStorage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null deleteFile(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null deleteFineTuningCheckpointPermission(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
@@ -183,6 +184,7 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null getCodeInterpreterSessionsUsage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null getCompletionsUsage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null getCosts(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null getDecisionsUsage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null getEmbeddingsUsage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null getFileSearchCallsUsage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null getImagesUsage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
@@ -195,6 +197,7 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null listAdminApiKeys(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listAgentEnvironmentFiles(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listAgentEnvironmentTemplates(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null listAgentEnvironments(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listAgentSessionArtifacts(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listAgentSessionItems(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listAgentSessionSubagentItems(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
@@ -216,9 +219,9 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null listContainerFiles(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listContainers(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listConversationItems(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null listEvalRunOutputItems(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null listEvalRuns(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null listEvals(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null listEvalRunOutputItems(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
+ * @method ResponseInterface|null listEvalRuns(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
+ * @method ResponseInterface|null listEvals(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null listExternalStorage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listFiles(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null listFineTuningCheckpointPermissions(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
@@ -289,9 +292,9 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null retrieveContainerFileContent(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null retrieveConversation(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null retrieveConversationItem(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null retrieveEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null retrieveEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null retrieveEvalRunOutputItem(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null retrieveEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
+ * @method ResponseInterface|null retrieveEvalRun(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
+ * @method ResponseInterface|null retrieveEvalRunOutputItem(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null retrieveExternalStorage(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null retrieveFile(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null retrieveFileContent(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
@@ -349,7 +352,7 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null updateAgentSession(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateChatCompletion(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateConversation(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
- * @method ResponseInterface|null updateEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null updateEval(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null) Deprecated upstream.
  * @method ResponseInterface|null updateGroup(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateOrganizationDataRetention(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateOrganizationRole(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
@@ -362,6 +365,7 @@ use const PHP_QUERY_RFC3986;
  * @method ResponseInterface|null updateProjectSpendLimit(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateSkill(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateVectorStoreFileAttributes(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
+ * @method ResponseInterface|null updateVault(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateVoiceConsent(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null updateWebhookEndpoint(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)
  * @method ResponseInterface|null uploadCertificate(array<string, mixed> $parametersOrBody = [], array<string, mixed>|callable|null $bodyOrCallback = [], ?callable $streamCallback = null)

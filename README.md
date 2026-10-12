@@ -78,6 +78,10 @@ foreach ($result['output'] as $item) {
 
 Endpoint methods return a PSR-7 `ResponseInterface`, including calls that deliver SSE events to a callback.
 
+To request GPT-6.1 Sol's Ultrafast mode, pass `'service_tier' => 'ultrafast'` in the request body. See the
+[Ultrafast example](examples/responses/createResponseUltrafast.php) and check OpenAI's
+[pricing](https://developers.openai.com/api/docs/pricing) before choosing this tier.
+
 ## Agents API
 
 The beta Agents API provides the managed Codex harness, durable sessions, hosted environments, artifacts, subagents,
@@ -203,6 +207,72 @@ try {
 
 PSR-18 transport failures are wrapped in `OpenAIException` and retain the original exception as `getPrevious()`.
 
+## Response Handling
+
+Endpoint methods return raw PSR-7 responses. Optional wrappers implement `ResponseContract` and expose
+`toArray()`, `getRawBody()`, `getResponse()`, and `getRequestId()`, as well as JSON serialization. They require PHP 8.1
+and add no dependencies.
+
+`ModelResponse` is a DTO for Responses API model responses. It provides readonly `id`, `model`, `status`, `output`,
+and `usage` properties, aggregates text from message outputs, and exposes refusals separately:
+
+```php
+use SoftCreatR\OpenAI\Response\ModelResponse;
+
+$dto = ModelResponse::fromResponse($response);
+
+if ($dto->isCompleted()) {
+    echo $dto->getOutputText();
+}
+
+$refusals = $dto->getRefusals();
+```
+
+The DTO checks common field types but accepts new status strings, output types, and response properties. The original
+payload remains available through `toArray()` and `getRawBody()`. Missing or null status and usage are preserved as
+null. See the [live DTO example](examples/response-handling/createResponseDto.php).
+
+`JsonResponse` wraps any JSON object or array response. Its `map()` method passes decoded data to your DTO factory;
+`mapJson()` passes the exact original JSON to a validator or mapper. Seekable response streams retain their original
+position. Non-seekable streams are consumed: wrap them before reading, then use the captured `getRawBody()`. If you
+already captured a body, use `JsonResponse::fromJson($rawBody, $response)` to avoid reading the stream again. Invalid
+JSON throws `JsonException`; invalid wrapper or DTO input throws `InvalidArgumentException`.
+
+### Optional Payload Contracts
+
+[JSONPayloadContract](https://github.com/SoftCreatR/JSONPayloadContract) can validate and normalize selected fields
+before constructing application DTOs. Install it explicitly on PHP 8.3 or newer:
+
+```bash
+composer require softcreatr/json-payload-contract:^1.0
+```
+
+```php
+use SoftCreatR\JsonPayloadContract\Contract;
+use SoftCreatR\JsonPayloadContract\Field;
+use SoftCreatR\OpenAI\Response\JsonResponse;
+
+$contract = Contract::define([
+    'responseId' => Field::required('$.id')->string(),
+    'textParts' => Field::many(
+        '$.output[?(@.type == "message")].content[?(@.type == "output_text")].text',
+    )->string(),
+]);
+
+$data = JsonResponse::fromResponse($response)->mapJson($contract->applyJson(...));
+```
+
+Using raw JSON lets the contract distinguish objects from arrays and detect duplicate object members. Pass
+`$contract->extractJson(...)` instead to receive a diagnostic `Result` without throwing for invalid payloads. The
+[fixture-based contract example](examples/response-handling/withJsonPayloadContract.php) also validates generated
+JSON and constructs an application DTO without making an API request.
+
+HTTP error handling, SSE JSON decoding, and webhook signature verification remain independent of these wrappers.
+Apply application schemas and business rules explicitly. For model-generated JSON, use
+[Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) and handle refusals and
+incomplete responses before using the generated data. Streaming callbacks remain plain event arrays; contracts can
+be applied to selected events with `apply()` or `extract()`.
+
 ## Webhooks
 
 Verify the signature against the exact raw request body before decoding or changing it. The verifier follows OpenAI's
@@ -235,14 +305,16 @@ php examples/responses/createResponse.php
 ```
 
 Set `OPENAI_ADMIN_KEY` only when running examples under `examples/administration`. The Agents vault credential examples
-also read `MCP_BEARER_TOKEN`. Workload identity examples use their dedicated identity variables and, for X.509,
-`OPENAI_CLIENT_CERT` and `OPENAI_CLIENT_KEY`. Keep all secrets in `.env` and never commit it.
+also read `MCP_BEARER_TOKEN`; the vault update example accepts `OPENAI_VAULT_ID`. Workload identity examples use their
+dedicated identity variables; X.509 examples also require `OPENAI_CLIENT_CERT` and `OPENAI_CLIENT_KEY`. Keep all
+secrets in `.env` and never commit it.
 
 ## Supported Methods
 
-The catalog follows the current [OpenAI API reference](https://developers.openai.com/api/reference). Fine-tuning is
-retained for transitional compatibility and is marked deprecated. APIs that OpenAI classifies as legacy are
-intentionally absent. Distinct beta routes are registered separately from their stable counterparts.
+The catalog follows the current [OpenAI API reference](https://developers.openai.com/api/reference). Evals and
+fine-tuning are retained for transitional compatibility and are marked deprecated. Removed APIs and the legacy
+Completions, Assistants, and Realtime beta session-token routes are intentionally absent. Distinct beta routes are
+registered separately from their stable counterparts.
 
 ### Administration
 
@@ -293,6 +365,7 @@ intentionally absent. Distinct beta routes are registered separately from their 
 | `getCodeInterpreterSessionsUsage` | `GET /organization/usage/code_interpreter_sessions` | `none` | [PHP](examples/administration/usage/getCodeInterpreterSessionsUsage.php) |
 | `getCompletionsUsage` | `GET /organization/usage/completions` | `none` | [PHP](examples/administration/usage/getCompletionsUsage.php) |
 | `getCosts` | `GET /organization/costs` | `none` | [PHP](examples/administration/usage/getCosts.php) |
+| `getDecisionsUsage` | `GET /organization/usage/decisions` | `none` | [PHP](examples/administration/usage/getDecisionsUsage.php) |
 | `getEmbeddingsUsage` | `GET /organization/usage/embeddings` | `none` | [PHP](examples/administration/usage/getEmbeddingsUsage.php) |
 | `getFileSearchCallsUsage` | `GET /organization/usage/file_search_calls` | `none` | [PHP](examples/administration/usage/getFileSearchCallsUsage.php) |
 | `getImagesUsage` | `GET /organization/usage/images` | `none` | [PHP](examples/administration/usage/getImagesUsage.php) |
@@ -376,10 +449,12 @@ intentionally absent. Distinct beta routes are registered separately from their 
 ### Agents (Beta)
 
 The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for these endpoints.
+Creating and listing prewarmed environments requires access to the Agents prewarming beta.
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
 | `createAgent` | `POST /agents` | `json` | [PHP](examples/agents/definitions/createAgent.php) |
+| `createAgentEnvironment` | `POST /agents/environments` | `json` | [PHP](examples/agents/environments/createAgentEnvironment.php) |
 | `createAgentEnvironmentFile` | `POST /agents/environments/{environment_id}/files` | `json` | [PHP](examples/agents/environments/createAgentEnvironmentFile.php) |
 | `createAgentEnvironmentTemplate` | `POST /agents/environments/templates` | `json` | [PHP](examples/agents/environment-templates/createAgentEnvironmentTemplate.php) |
 | `createAgentSession` | `POST /agents/sessions` | `json` | [PHP](examples/agents/sessions/createAgentSession.php) |
@@ -394,6 +469,7 @@ The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for the
 | `deleteVaultCredential` | `DELETE /vaults/{vault_id}/credentials/{credential_id}` | `none` | [PHP](examples/agents/vaults/deleteVaultCredential.php) |
 | `listAgentEnvironmentFiles` | `GET /agents/environments/{environment_id}/files` | `none` | [PHP](examples/agents/environments/listAgentEnvironmentFiles.php) |
 | `listAgentEnvironmentTemplates` | `GET /agents/environments/templates` | `none` | [PHP](examples/agents/environment-templates/listAgentEnvironmentTemplates.php) |
+| `listAgentEnvironments` | `GET /agents/environments` | `none` | [PHP](examples/agents/environments/listAgentEnvironments.php) |
 | `listAgentSessionArtifacts` | `GET /agents/sessions/{session_id}/artifacts` | `none` | [PHP](examples/agents/artifacts/listAgentSessionArtifacts.php) |
 | `listAgentSessionItems` | `GET /agents/sessions/{session_id}/items` | `none` | [PHP](examples/agents/sessions/listAgentSessionItems.php) |
 | `listAgentSessionSubagentItems` | `GET /agents/sessions/{session_id}/subagents/{subagent_id}/items` | `none` | [PHP](examples/agents/subagents/listAgentSessionSubagentItems.php) |
@@ -423,6 +499,7 @@ The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for the
 | `updateAgent` | `POST /agents/{agent_id}` | `json` | [PHP](examples/agents/definitions/updateAgent.php) |
 | `updateAgentEnvironmentTemplate` | `POST /agents/environments/templates/{environment_template_id}` | `json` | [PHP](examples/agents/environment-templates/updateAgentEnvironmentTemplate.php) |
 | `updateAgentSession` | `POST /agents/sessions/{session_id}` | `json` | [PHP](examples/agents/sessions/updateAgentSession.php) |
+| `updateVault` | `POST /vaults/{vault_id}` | `json` | [PHP](examples/agents/vaults/updateVault.php) |
 
 ### Audio
 
@@ -514,22 +591,25 @@ The SDK automatically sends the required `OpenAI-Beta: agents=v1` header for the
 | --- | --- | --- | --- |
 | `createEmbedding` | `POST /embeddings` | `json` | [PHP](examples/embeddings/createEmbedding.php) |
 
-### Evals
+### Evals (Deprecated)
+
+The Evals API becomes read-only on October 31, 2026 and is scheduled to shut down on November 30, 2026.
+These methods remain callable for transitional compatibility until shutdown.
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
-| `cancelEvalRun` | `POST /evals/{eval_id}/runs/{run_id}/cancel` | `none` | [PHP](examples/evals/runs/cancelEvalRun.php) |
-| `createEval` | `POST /evals` | `json` | [PHP](examples/evals/createEval.php) |
-| `createEvalRun` | `POST /evals/{eval_id}/runs` | `json` | [PHP](examples/evals/runs/createEvalRun.php) |
-| `deleteEval` | `DELETE /evals/{eval_id}` | `none` | [PHP](examples/evals/deleteEval.php) |
-| `deleteEvalRun` | `DELETE /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/deleteEvalRun.php) |
-| `listEvalRunOutputItems` | `GET /evals/{eval_id}/runs/{run_id}/output_items` | `none` | [PHP](examples/evals/runs/listEvalRunOutputItems.php) |
-| `listEvalRuns` | `GET /evals/{eval_id}/runs` | `none` | [PHP](examples/evals/runs/listEvalRuns.php) |
-| `listEvals` | `GET /evals` | `none` | [PHP](examples/evals/listEvals.php) |
-| `retrieveEval` | `GET /evals/{eval_id}` | `none` | [PHP](examples/evals/retrieveEval.php) |
-| `retrieveEvalRun` | `GET /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/retrieveEvalRun.php) |
-| `retrieveEvalRunOutputItem` | `GET /evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}` | `none` | [PHP](examples/evals/runs/retrieveEvalRunOutputItem.php) |
-| `updateEval` | `POST /evals/{eval_id}` | `json` | [PHP](examples/evals/updateEval.php) |
+| `cancelEvalRun` (deprecated) | `POST /evals/{eval_id}/runs/{run_id}/cancel` | `none` | [PHP](examples/evals/runs/cancelEvalRun.php) |
+| `createEval` (deprecated) | `POST /evals` | `json` | [PHP](examples/evals/createEval.php) |
+| `createEvalRun` (deprecated) | `POST /evals/{eval_id}/runs` | `json` | [PHP](examples/evals/runs/createEvalRun.php) |
+| `deleteEval` (deprecated) | `DELETE /evals/{eval_id}` | `none` | [PHP](examples/evals/deleteEval.php) |
+| `deleteEvalRun` (deprecated) | `DELETE /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/deleteEvalRun.php) |
+| `listEvalRunOutputItems` (deprecated) | `GET /evals/{eval_id}/runs/{run_id}/output_items` | `none` | [PHP](examples/evals/runs/listEvalRunOutputItems.php) |
+| `listEvalRuns` (deprecated) | `GET /evals/{eval_id}/runs` | `none` | [PHP](examples/evals/runs/listEvalRuns.php) |
+| `listEvals` (deprecated) | `GET /evals` | `none` | [PHP](examples/evals/listEvals.php) |
+| `retrieveEval` (deprecated) | `GET /evals/{eval_id}` | `none` | [PHP](examples/evals/retrieveEval.php) |
+| `retrieveEvalRun` (deprecated) | `GET /evals/{eval_id}/runs/{run_id}` | `none` | [PHP](examples/evals/runs/retrieveEvalRun.php) |
+| `retrieveEvalRunOutputItem` (deprecated) | `GET /evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}` | `none` | [PHP](examples/evals/runs/retrieveEvalRunOutputItem.php) |
+| `updateEval` (deprecated) | `POST /evals/{eval_id}` | `json` | [PHP](examples/evals/updateEval.php) |
 
 ### Files
 
@@ -729,7 +809,8 @@ API. Use Responses and Conversations instead of Assistants, and Realtime client-
 session-token routes.
 
 The self-serve fine-tuning routes remain temporarily available and are marked deprecated because eligible existing
-customers can still use them during OpenAI's transition. See OpenAI's
+customers can still use them during OpenAI's transition. Evals methods are also marked deprecated: the platform
+becomes read-only on October 31, 2026 and shuts down on November 30, 2026. See OpenAI's
 [deprecation schedule](https://developers.openai.com/api/docs/deprecations) and the [migration notes](CHANGELOG.md)
 before upgrading.
 

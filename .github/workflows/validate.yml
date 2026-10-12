@@ -81,6 +81,9 @@ jobs:
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress
 
+      - name: Install optional contract integration for validation
+        run: composer require --dev softcreatr/json-payload-contract:^1.0 --no-interaction --no-progress
+
       - name: Audit dependencies
         run: composer audit --locked
 
@@ -89,6 +92,9 @@ jobs:
 
       - name: Run static analysis
         run: composer analyse
+
+      - name: Check optional contract integration
+        run: php examples/response-handling/withJsonPayloadContract.php
 
       - name: Run test coverage
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
