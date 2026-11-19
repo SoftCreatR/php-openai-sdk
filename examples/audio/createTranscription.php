@@ -23,6 +23,6 @@ OpenAIFactory::request(
     'createTranscription',
     [
         'file' => __DIR__ . '/fixtures/audio.mp3',
-        'model' => 'whisper-1',
+        'model' => 'gpt-transcribe',
     ],
 );

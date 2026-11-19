@@ -27,6 +27,7 @@ use ReflectionException;
 use SoftCreatR\OpenAI\OpenAIURLBuilder;
 
 use const PHP_QUERY_RFC3986;
+use const PREG_SET_ORDER;
 
 #[CoversClass(OpenAIURLBuilder::class)]
 final class OpenAIURLBuilderTest extends TestCase
@@ -154,6 +155,39 @@ final class OpenAIURLBuilderTest extends TestCase
         $this->assertArrayHasKey('listWebhookEventTypes', $endpoints);
         $this->assertArrayHasKey('exchangeWorkloadIdentityToken', $endpoints);
         $this->assertSame('/evals/{eval_id}/runs/{run_id}/cancel', $endpoints['cancelEvalRun']['path']);
+    }
+
+    public function testCatalogAndExamplesMatchRegistry(): void
+    {
+        $root = \dirname(__DIR__);
+        $readme = \file_get_contents($root . '/README.md');
+        $client = \file_get_contents($root . '/src/OpenAI.php');
+        $this->assertIsString($readme);
+        $this->assertIsString($client);
+
+        $endpoints = OpenAIURLBuilder::getEndpoints();
+        \preg_match_all(
+            '~^\| `(\w+)`( \(deprecated\))? \| `([^\n]+)` \| `(none|json|multipart)` \| \[PHP\]\((examples/[^)]+)\) \|$~m',
+            $readme,
+            $rows,
+            PREG_SET_ORDER,
+        );
+        \preg_match_all('/^ \* @method ResponseInterface\|null (\w+)\(/m', $client, $annotations);
+        $this->assertEqualsCanonicalizing(\array_keys($endpoints), \array_column($rows, 1));
+        $this->assertEqualsCanonicalizing(\array_keys($endpoints), $annotations[1]);
+
+        foreach ($rows as [, $name, $deprecated, $route, $body, $example]) {
+            $endpoint = $endpoints[$name];
+            $origin = isset($endpoint['origin']) ? 'https://' . $endpoint['origin'] : '';
+            $query = isset($endpoint['query'])
+                ? '?' . \http_build_query($endpoint['query'], '', '&', PHP_QUERY_RFC3986)
+                : '';
+
+            $this->assertSame($endpoint['method'] . ' ' . $origin . $endpoint['path'] . $query, $route, $name);
+            $this->assertSame($endpoint['body'], $body, $name);
+            $this->assertSame($endpoint['deprecated'] ?? false, $deprecated !== '', $name);
+            $this->assertFileExists($root . '/' . $example);
+        }
     }
 
     public function testCreateUrlEncodesPathSegments(): void

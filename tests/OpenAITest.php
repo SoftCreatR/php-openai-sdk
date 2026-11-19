@@ -886,6 +886,47 @@ final class OpenAITest extends TestCase
     /**
      * @throws Throwable
      */
+    public function testCreatesAgentAutomationInvocationWithoutRequestBody(): void
+    {
+        $this->sendRequestMock(function (RequestInterface $request) {
+            $this->assertSame('POST', $request->getMethod());
+            $this->assertSame('/v1/agents/automations/auto_123/invocations', $request->getUri()->getPath());
+            $this->assertSame('agents=v1', $request->getHeaderLine('OpenAI-Beta'));
+            $this->assertSame('', (string) $request->getBody());
+            $this->assertFalse($request->hasHeader('Content-Type'));
+
+            return new Response(200, [], '{}');
+        });
+
+        $this->openAI->createAgentAutomationInvocation(['automation_id' => 'auto_123']);
+    }
+
+    /**
+     * @throws Throwable
+     */
+    public function testCreatesWorkloadIdentityFederationRule(): void
+    {
+        $payload = [
+            'project_id' => 'proj_123',
+            'service_account_id' => 'svc_acct_123',
+            'attribute_matchers' => ['sub' => 'ci:release'],
+        ];
+        $this->sendRequestMock(function (RequestInterface $request) use ($payload) {
+            $this->assertSame('POST', $request->getMethod());
+            $this->assertSame('/v1/organization/workload_identity_providers/wip_123/federation_rules', $request->getUri()->getPath());
+            $this->assertSame('application/json', $request->getHeaderLine('Content-Type'));
+            $this->assertSame($payload, \json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR));
+
+            return new Response(200, [], '{}');
+        });
+
+        $this->assertTrue(OpenAIURLBuilder::getEndpoint('createWorkloadIdentityFederationRule')['admin']);
+        $this->openAI->createWorkloadIdentityFederationRule(['workload_identity_provider_id' => 'wip_123'], $payload);
+    }
+
+    /**
+     * @throws Throwable
+     */
     public function testRealtimeCallAcceptsScalarMultipartFields(): void
     {
         $this->sendRequestMock(function (RequestInterface $request) {

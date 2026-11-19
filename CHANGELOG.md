@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 4.4.0 - 2026-11-19
+
+### Added
+
+- Added Agents automation scheduling, management, and invocation endpoints, plus custom voice deletion.
+- Added Admin API methods for external encryption keys, workload identity providers and federation rules,
+  project service-tier settings, and project API key updates.
+- Added grouped examples for the new routes and an example of creating a voice from a text prompt.
+
+### Changed
+
+- Marked `createTranslation` deprecated without removing it. OpenAI plans to shut down the batch audio
+  translation endpoint on February 26, 2027; migrate to Realtime translation.
+- Documented that Evals is now read-only and refreshed the image generation, image editing, and transcription examples.
+
 ## 4.3.0 - 2026-10-12
 
 ### Added

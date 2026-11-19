@@ -85,7 +85,7 @@ To request GPT-6.1 Sol's Ultrafast mode, pass `'service_tier' => 'ultrafast'` in
 ## Agents API
 
 The beta Agents API provides the managed Codex harness, durable sessions, hosted environments, artifacts, subagents,
-and vaults. The SDK applies the required `OpenAI-Beta: agents=v1` header automatically.
+vaults, and scheduled automations. The SDK applies the required `OpenAI-Beta: agents=v1` header automatically.
 
 ```php
 $openAI->createAgentSession(
@@ -330,6 +330,7 @@ registered separately from their stable counterparts.
 | `assignProjectUserRole` | `POST /projects/{project_id}/users/{user_id}/roles` | `json` | [PHP](examples/administration/project-users/assignProjectUserRole.php) |
 | `assignUserRole` | `POST /organization/users/{user_id}/roles` | `json` | [PHP](examples/administration/org-users/assignUserRole.php) |
 | `createAdminApiKey` | `POST /organization/admin_api_keys` | `json` | [PHP](examples/administration/admin-api-keys/createAdminApiKey.php) |
+| `createExternalKey` | `POST /organization/external_keys` | `json` | [PHP](examples/administration/external-keys/createExternalKey.php) |
 | `createExternalStorage` | `POST /organization/external_storage` | `json` | [PHP](examples/administration/external-storage/createExternalStorage.php) |
 | `createGroup` | `POST /organization/groups` | `json` | [PHP](examples/administration/org-groups/createGroup.php) |
 | `createInvite` | `POST /organization/invites` | `json` | [PHP](examples/administration/invites/createInvite.php) |
@@ -341,10 +342,13 @@ registered separately from their stable counterparts.
 | `createProjectServiceAccountApiKey` | `POST /organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys` | `json` | [PHP](examples/administration/project-service-accounts/createProjectServiceAccountApiKey.php) |
 | `createProjectSpendAlert` | `POST /organization/projects/{project_id}/spend_alerts` | `json` | [PHP](examples/administration/project-spend-alerts/createProjectSpendAlert.php) |
 | `createProjectUser` | `POST /organization/projects/{project_id}/users` | `json` | [PHP](examples/administration/project-users/createProjectUser.php) |
+| `createWorkloadIdentityFederationRule` | `POST /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules` | `json` | [PHP](examples/administration/workload-identity-providers/createWorkloadIdentityFederationRule.php) |
+| `createWorkloadIdentityProvider` | `POST /organization/workload_identity_providers` | `json` | [PHP](examples/administration/workload-identity-providers/createWorkloadIdentityProvider.php) |
 | `deactivateCertificates` | `POST /organization/certificates/deactivate` | `json` | [PHP](examples/administration/certificates/deactivateCertificates.php) |
 | `deactivateProjectCertificates` | `POST /organization/projects/{project_id}/certificates/deactivate` | `json` | [PHP](examples/administration/certificates/deactivateProjectCertificates.php) |
 | `deleteAdminApiKey` | `DELETE /organization/admin_api_keys/{key_id}` | `none` | [PHP](examples/administration/admin-api-keys/deleteAdminApiKey.php) |
 | `deleteCertificate` | `DELETE /organization/certificates/{certificate_id}` | `none` | [PHP](examples/administration/certificates/deleteCertificate.php) |
+| `deleteExternalKey` | `DELETE /organization/external_keys/{external_key_id}` | `none` | [PHP](examples/administration/external-keys/deleteExternalKey.php) |
 | `deleteExternalStorage` | `DELETE /organization/external_storage/{external_storage_id}` | `none` | [PHP](examples/administration/external-storage/deleteExternalStorage.php) |
 | `deleteGroup` | `DELETE /organization/groups/{group_id}` | `none` | [PHP](examples/administration/org-groups/deleteGroup.php) |
 | `deleteInvite` | `DELETE /organization/invites/{invite_id}` | `none` | [PHP](examples/administration/invites/deleteInvite.php) |
@@ -359,6 +363,8 @@ registered separately from their stable counterparts.
 | `deleteProjectSpendLimit` | `DELETE /organization/projects/{project_id}/spend_limit` | `none` | [PHP](examples/administration/project-spend-limits/deleteProjectSpendLimit.php) |
 | `deleteProjectUser` | `DELETE /organization/projects/{project_id}/users/{user_id}` | `none` | [PHP](examples/administration/project-users/deleteProjectUser.php) |
 | `deleteUser` | `DELETE /organization/users/{user_id}` | `none` | [PHP](examples/administration/org-users/deleteUser.php) |
+| `deleteWorkloadIdentityFederationRule` | `DELETE /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}` | `none` | [PHP](examples/administration/workload-identity-providers/deleteWorkloadIdentityFederationRule.php) |
+| `deleteWorkloadIdentityProvider` | `DELETE /organization/workload_identity_providers/{workload_identity_provider_id}` | `none` | [PHP](examples/administration/workload-identity-providers/deleteWorkloadIdentityProvider.php) |
 | `getAudioSpeechesUsage` | `GET /organization/usage/audio_speeches` | `none` | [PHP](examples/administration/usage/getAudioSpeechesUsage.php) |
 | `getAudioTranscriptionsUsage` | `GET /organization/usage/audio_transcriptions` | `none` | [PHP](examples/administration/usage/getAudioTranscriptionsUsage.php) |
 | `getCertificate` | `GET /organization/certificates/{certificate_id}` | `none` | [PHP](examples/administration/certificates/getCertificate.php) |
@@ -375,6 +381,7 @@ registered separately from their stable counterparts.
 | `listAdminApiKeys` | `GET /organization/admin_api_keys` | `none` | [PHP](examples/administration/admin-api-keys/listAdminApiKeys.php) |
 | `listAuditLogs` | `GET /organization/audit_logs` | `none` | [PHP](examples/administration/audit-logs/listAuditLogs.php) |
 | `listCertificates` | `GET /organization/certificates` | `none` | [PHP](examples/administration/certificates/listCertificates.php) |
+| `listExternalKeys` | `GET /organization/external_keys` | `none` | [PHP](examples/administration/external-keys/listExternalKeys.php) |
 | `listExternalStorage` | `GET /organization/external_storage` | `none` | [PHP](examples/administration/external-storage/listExternalStorage.php) |
 | `listGroupRoles` | `GET /organization/groups/{group_id}/roles` | `none` | [PHP](examples/administration/org-groups/listGroupRoles.php) |
 | `listGroupUsers` | `GET /organization/groups/{group_id}/users` | `none` | [PHP](examples/administration/org-groups/listGroupUsers.php) |
@@ -395,6 +402,8 @@ registered separately from their stable counterparts.
 | `listProjects` | `GET /organization/projects` | `none` | [PHP](examples/administration/projects/listProjects.php) |
 | `listUserRoles` | `GET /organization/users/{user_id}/roles` | `none` | [PHP](examples/administration/org-users/listUserRoles.php) |
 | `listUsers` | `GET /organization/users` | `none` | [PHP](examples/administration/org-users/listUsers.php) |
+| `listWorkloadIdentityFederationRules` | `GET /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules` | `none` | [PHP](examples/administration/workload-identity-providers/listWorkloadIdentityFederationRules.php) |
+| `listWorkloadIdentityProviders` | `GET /organization/workload_identity_providers` | `none` | [PHP](examples/administration/workload-identity-providers/listWorkloadIdentityProviders.php) |
 | `modifyCertificate` | `POST /organization/certificates/{certificate_id}` | `json` | [PHP](examples/administration/certificates/modifyCertificate.php) |
 | `modifyProject` | `POST /organization/projects/{project_id}` | `json` | [PHP](examples/administration/projects/modifyProject.php) |
 | `modifyProjectHostedToolPermissions` | `POST /organization/projects/{project_id}/hosted_tool_permissions` | `json` | [PHP](examples/administration/project-hosted-tool-permissions/modifyProjectHostedToolPermissions.php) |
@@ -405,6 +414,7 @@ registered separately from their stable counterparts.
 | `removeGroupUser` | `DELETE /organization/groups/{group_id}/users/{user_id}` | `none` | [PHP](examples/administration/org-groups/removeGroupUser.php) |
 | `removeProjectGroup` | `DELETE /organization/projects/{project_id}/groups/{group_id}` | `none` | [PHP](examples/administration/project-groups/removeProjectGroup.php) |
 | `retrieveAdminApiKey` | `GET /organization/admin_api_keys/{key_id}` | `none` | [PHP](examples/administration/admin-api-keys/retrieveAdminApiKey.php) |
+| `retrieveExternalKey` | `GET /organization/external_keys/{external_key_id}` | `none` | [PHP](examples/administration/external-keys/retrieveExternalKey.php) |
 | `retrieveExternalStorage` | `GET /organization/external_storage/{external_storage_id}` | `none` | [PHP](examples/administration/external-storage/retrieveExternalStorage.php) |
 | `retrieveGroup` | `GET /organization/groups/{group_id}` | `none` | [PHP](examples/administration/org-groups/retrieveGroup.php) |
 | `retrieveGroupRole` | `GET /organization/groups/{group_id}/roles/{role_id}` | `none` | [PHP](examples/administration/org-groups/retrieveGroupRole.php) |
@@ -423,12 +433,15 @@ registered separately from their stable counterparts.
 | `retrieveProjectModelPermissions` | `GET /organization/projects/{project_id}/model_permissions` | `none` | [PHP](examples/administration/project-model-permissions/retrieveProjectModelPermissions.php) |
 | `retrieveProjectRole` | `GET /projects/{project_id}/roles/{role_id}` | `none` | [PHP](examples/administration/project-roles/retrieveProjectRole.php) |
 | `retrieveProjectServiceAccount` | `GET /organization/projects/{project_id}/service_accounts/{service_account_id}` | `none` | [PHP](examples/administration/project-service-accounts/retrieveProjectServiceAccount.php) |
+| `retrieveProjectServiceTierSettings` | `GET /organization/projects/{project_id}/service_tier_settings` | `none` | [PHP](examples/administration/project-service-tier-settings/retrieveProjectServiceTierSettings.php) |
 | `retrieveProjectSpendAlert` | `GET /organization/projects/{project_id}/spend_alerts/{alert_id}` | `none` | [PHP](examples/administration/project-spend-alerts/retrieveProjectSpendAlert.php) |
 | `retrieveProjectSpendLimit` | `GET /organization/projects/{project_id}/spend_limit` | `none` | [PHP](examples/administration/project-spend-limits/retrieveProjectSpendLimit.php) |
 | `retrieveProjectUser` | `GET /organization/projects/{project_id}/users/{user_id}` | `none` | [PHP](examples/administration/project-users/retrieveProjectUser.php) |
 | `retrieveProjectUserRole` | `GET /projects/{project_id}/users/{user_id}/roles/{role_id}` | `none` | [PHP](examples/administration/project-users/retrieveProjectUserRole.php) |
 | `retrieveUser` | `GET /organization/users/{user_id}` | `none` | [PHP](examples/administration/org-users/retrieveUser.php) |
 | `retrieveUserRole` | `GET /organization/users/{user_id}/roles/{role_id}` | `none` | [PHP](examples/administration/org-users/retrieveUserRole.php) |
+| `retrieveWorkloadIdentityFederationRule` | `GET /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}` | `none` | [PHP](examples/administration/workload-identity-providers/retrieveWorkloadIdentityFederationRule.php) |
+| `retrieveWorkloadIdentityProvider` | `GET /organization/workload_identity_providers/{workload_identity_provider_id}` | `none` | [PHP](examples/administration/workload-identity-providers/retrieveWorkloadIdentityProvider.php) |
 | `unassignGroupRole` | `DELETE /organization/groups/{group_id}/roles/{role_id}` | `none` | [PHP](examples/administration/org-groups/unassignGroupRole.php) |
 | `unassignProjectGroupRole` | `DELETE /projects/{project_id}/groups/{group_id}/roles/{role_id}` | `none` | [PHP](examples/administration/project-groups/unassignProjectGroupRole.php) |
 | `unassignProjectUserRole` | `DELETE /projects/{project_id}/users/{user_id}/roles/{role_id}` | `none` | [PHP](examples/administration/project-users/unassignProjectUserRole.php) |
@@ -438,12 +451,17 @@ registered separately from their stable counterparts.
 | `updateOrganizationRole` | `POST /organization/roles/{role_id}` | `json` | [PHP](examples/administration/org-roles/updateOrganizationRole.php) |
 | `updateOrganizationSpendAlert` | `POST /organization/spend_alerts/{alert_id}` | `json` | [PHP](examples/administration/org-spend-alerts/updateOrganizationSpendAlert.php) |
 | `updateOrganizationSpendLimit` | `POST /organization/spend_limit` | `json` | [PHP](examples/administration/org-spend-limits/updateOrganizationSpendLimit.php) |
+| `updateProjectApiKey` | `POST /organization/projects/{project_id}/api_keys/{api_key_id}` | `json` | [PHP](examples/administration/project-api-keys/updateProjectApiKey.php) |
 | `updateProjectDataRetention` | `POST /organization/projects/{project_id}/data_retention` | `json` | [PHP](examples/administration/project-data-retention/updateProjectDataRetention.php) |
 | `updateProjectRole` | `POST /projects/{project_id}/roles/{role_id}` | `json` | [PHP](examples/administration/project-roles/updateProjectRole.php) |
 | `updateProjectServiceAccount` | `POST /organization/projects/{project_id}/service_accounts/{service_account_id}` | `json` | [PHP](examples/administration/project-service-accounts/updateProjectServiceAccount.php) |
+| `updateProjectServiceTierSettings` | `POST /organization/projects/{project_id}/service_tier_settings` | `json` | [PHP](examples/administration/project-service-tier-settings/updateProjectServiceTierSettings.php) |
 | `updateProjectSpendAlert` | `POST /organization/projects/{project_id}/spend_alerts/{alert_id}` | `json` | [PHP](examples/administration/project-spend-alerts/updateProjectSpendAlert.php) |
 | `updateProjectSpendLimit` | `POST /organization/projects/{project_id}/spend_limit` | `json` | [PHP](examples/administration/project-spend-limits/updateProjectSpendLimit.php) |
+| `updateWorkloadIdentityFederationRule` | `POST /organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}` | `json` | [PHP](examples/administration/workload-identity-providers/updateWorkloadIdentityFederationRule.php) |
+| `updateWorkloadIdentityProvider` | `POST /organization/workload_identity_providers/{workload_identity_provider_id}` | `json` | [PHP](examples/administration/workload-identity-providers/updateWorkloadIdentityProvider.php) |
 | `uploadCertificate` | `POST /organization/certificates` | `json` | [PHP](examples/administration/certificates/uploadCertificate.php) |
+| `validateExternalKey` | `POST /organization/external_keys/{external_key_id}/validate` | `none` | [PHP](examples/administration/external-keys/validateExternalKey.php) |
 | `validateExternalStorage` | `POST /organization/external_storage/{external_storage_id}/validate` | `none` | [PHP](examples/administration/external-storage/validateExternalStorage.php) |
 
 ### Agents (Beta)
@@ -454,6 +472,8 @@ Creating and listing prewarmed environments requires access to the Agents prewar
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
 | `createAgent` | `POST /agents` | `json` | [PHP](examples/agents/definitions/createAgent.php) |
+| `createAgentAutomation` | `POST /agents/automations` | `json` | [PHP](examples/agents/automations/createAgentAutomation.php) |
+| `createAgentAutomationInvocation` | `POST /agents/automations/{automation_id}/invocations` | `none` | [PHP](examples/agents/automations/createAgentAutomationInvocation.php) |
 | `createAgentEnvironment` | `POST /agents/environments` | `json` | [PHP](examples/agents/environments/createAgentEnvironment.php) |
 | `createAgentEnvironmentFile` | `POST /agents/environments/{environment_id}/files` | `json` | [PHP](examples/agents/environments/createAgentEnvironmentFile.php) |
 | `createAgentEnvironmentTemplate` | `POST /agents/environments/templates` | `json` | [PHP](examples/agents/environment-templates/createAgentEnvironmentTemplate.php) |
@@ -462,11 +482,14 @@ Creating and listing prewarmed environments requires access to the Agents prewar
 | `createVault` | `POST /vaults` | `json` | [PHP](examples/agents/vaults/createVault.php) |
 | `createVaultCredential` | `POST /vaults/{vault_id}/credentials` | `json` | [PHP](examples/agents/vaults/createVaultCredential.php) |
 | `deleteAgent` | `DELETE /agents/{agent_id}` | `none` | [PHP](examples/agents/definitions/deleteAgent.php) |
+| `deleteAgentAutomation` | `DELETE /agents/automations/{automation_id}` | `none` | [PHP](examples/agents/automations/deleteAgentAutomation.php) |
 | `deleteAgentEnvironmentTemplate` | `DELETE /agents/environments/templates/{environment_template_id}` | `none` | [PHP](examples/agents/environment-templates/deleteAgentEnvironmentTemplate.php) |
 | `deleteAgentSession` | `DELETE /agents/sessions/{session_id}` | `none` | [PHP](examples/agents/sessions/deleteAgentSession.php) |
 | `deleteAgentSessionArtifact` | `DELETE /agents/sessions/{session_id}/artifacts/{artifact_id}` | `none` | [PHP](examples/agents/artifacts/deleteAgentSessionArtifact.php) |
 | `deleteVault` | `DELETE /vaults/{vault_id}` | `none` | [PHP](examples/agents/vaults/deleteVault.php) |
 | `deleteVaultCredential` | `DELETE /vaults/{vault_id}/credentials/{credential_id}` | `none` | [PHP](examples/agents/vaults/deleteVaultCredential.php) |
+| `listAgentAutomationInvocations` | `GET /agents/automations/{automation_id}/invocations` | `none` | [PHP](examples/agents/automations/listAgentAutomationInvocations.php) |
+| `listAgentAutomations` | `GET /agents/automations` | `none` | [PHP](examples/agents/automations/listAgentAutomations.php) |
 | `listAgentEnvironmentFiles` | `GET /agents/environments/{environment_id}/files` | `none` | [PHP](examples/agents/environments/listAgentEnvironmentFiles.php) |
 | `listAgentEnvironmentTemplates` | `GET /agents/environments/templates` | `none` | [PHP](examples/agents/environment-templates/listAgentEnvironmentTemplates.php) |
 | `listAgentEnvironments` | `GET /agents/environments` | `none` | [PHP](examples/agents/environments/listAgentEnvironments.php) |
@@ -483,7 +506,11 @@ Creating and listing prewarmed environments requires access to the Agents prewar
 | `listAgents` | `GET /agents` | `none` | [PHP](examples/agents/definitions/listAgents.php) |
 | `listVaultCredentials` | `GET /vaults/{vault_id}/credentials` | `none` | [PHP](examples/agents/vaults/listVaultCredentials.php) |
 | `listVaults` | `GET /vaults` | `none` | [PHP](examples/agents/vaults/listVaults.php) |
+| `pauseAgentAutomation` | `POST /agents/automations/{automation_id}/pause` | `none` | [PHP](examples/agents/automations/pauseAgentAutomation.php) |
+| `resumeAgentAutomation` | `POST /agents/automations/{automation_id}/resume` | `none` | [PHP](examples/agents/automations/resumeAgentAutomation.php) |
 | `retrieveAgent` | `GET /agents/{agent_id}` | `none` | [PHP](examples/agents/definitions/retrieveAgent.php) |
+| `retrieveAgentAutomation` | `GET /agents/automations/{automation_id}` | `none` | [PHP](examples/agents/automations/retrieveAgentAutomation.php) |
+| `retrieveAgentAutomationInvocation` | `GET /agents/automations/{automation_id}/invocations/{invocation_id}` | `none` | [PHP](examples/agents/automations/retrieveAgentAutomationInvocation.php) |
 | `retrieveAgentEnvironment` | `GET /agents/environments/{environment_id}` | `none` | [PHP](examples/agents/environments/retrieveAgentEnvironment.php) |
 | `retrieveAgentEnvironmentTemplate` | `GET /agents/environments/templates/{environment_template_id}` | `none` | [PHP](examples/agents/environment-templates/retrieveAgentEnvironmentTemplate.php) |
 | `retrieveAgentSession` | `GET /agents/sessions/{session_id}` | `none` | [PHP](examples/agents/sessions/retrieveAgentSession.php) |
@@ -497,19 +524,26 @@ Creating and listing prewarmed environments requires access to the Agents prewar
 | `rotateVaultCredential` | `POST /vaults/{vault_id}/credentials/{credential_id}` | `json` | [PHP](examples/agents/vaults/rotateVaultCredential.php) |
 | `streamAgentSessionEvents` | `GET /agents/sessions/{session_id}/events` | `none` | [PHP](examples/agents/sessions/streamAgentSessionEvents.php) |
 | `updateAgent` | `POST /agents/{agent_id}` | `json` | [PHP](examples/agents/definitions/updateAgent.php) |
+| `updateAgentAutomation` | `POST /agents/automations/{automation_id}` | `json` | [PHP](examples/agents/automations/updateAgentAutomation.php) |
 | `updateAgentEnvironmentTemplate` | `POST /agents/environments/templates/{environment_template_id}` | `json` | [PHP](examples/agents/environment-templates/updateAgentEnvironmentTemplate.php) |
 | `updateAgentSession` | `POST /agents/sessions/{session_id}` | `json` | [PHP](examples/agents/sessions/updateAgentSession.php) |
 | `updateVault` | `POST /vaults/{vault_id}` | `json` | [PHP](examples/agents/vaults/updateVault.php) |
 
 ### Audio
 
+Use `createVoice` with an audio sample and a consent recording ID, or
+[create a voice from a text prompt](examples/audio/createVoiceFromPrompt.php) for use in Live sessions.
+The legacy audio translation endpoint is scheduled to shut down on February 26, 2027. Migrate to
+[Realtime translation](https://developers.openai.com/api/docs/guides/realtime-translation).
+
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |
 | `createSpeech` | `POST /audio/speech` | `json` | [PHP](examples/audio/createSpeech.php) |
 | `createTranscription` | `POST /audio/transcriptions` | `multipart` | [PHP](examples/audio/createTranscription.php) |
-| `createTranslation` | `POST /audio/translations` | `multipart` | [PHP](examples/audio/createTranslation.php) |
+| `createTranslation` (deprecated) | `POST /audio/translations` | `multipart` | [PHP](examples/audio/createTranslation.php) |
 | `createVoice` | `POST /audio/voices` | `multipart` | [PHP](examples/audio/createVoice.php) |
 | `createVoiceConsent` | `POST /audio/voice_consents` | `multipart` | [PHP](examples/audio/createVoiceConsent.php) |
+| `deleteVoice` | `DELETE /audio/voices/{voice_id}` | `none` | [PHP](examples/audio/deleteVoice.php) |
 | `deleteVoiceConsent` | `DELETE /audio/voice_consents/{consent_id}` | `none` | [PHP](examples/audio/deleteVoiceConsent.php) |
 | `listVoiceConsents` | `GET /audio/voice_consents` | `none` | [PHP](examples/audio/listVoiceConsents.php) |
 | `retrieveVoiceConsent` | `GET /audio/voice_consents/{consent_id}` | `none` | [PHP](examples/audio/retrieveVoiceConsent.php) |
@@ -593,8 +627,9 @@ Creating and listing prewarmed environments requires access to the Agents prewar
 
 ### Evals (Deprecated)
 
-The Evals API becomes read-only on October 31, 2026 and is scheduled to shut down on November 30, 2026.
-These methods remain callable for transitional compatibility until shutdown.
+The Evals API is read-only and is scheduled to shut down on November 30, 2026. SDK methods are retained
+for compatibility, but Evals write requests are no longer supported upstream. Migrate to
+[Promptfoo](https://developers.openai.com/cookbook/examples/evaluation/moving-from-openai-evals-to-promptfoo).
 
 | SDK method | HTTP route | Request body | Example |
 | --- | --- | --- | --- |

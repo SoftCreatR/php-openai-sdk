@@ -18,7 +18,7 @@
 
 require_once __DIR__ . '/../OpenAIFactory.php';
 
-// Call the createTranslation method with options.
+// Deprecated upstream. Use Realtime translation for new integrations.
 OpenAIFactory::request(
     'createTranslation',
     [

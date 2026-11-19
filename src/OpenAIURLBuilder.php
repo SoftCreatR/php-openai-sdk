@@ -81,9 +81,10 @@ class OpenAIURLBuilder
 
         // Audio
         'createTranscription' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/transcriptions', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['file']],
-        'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['file']],
+        'createTranslation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/translations', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['file'], 'deprecated' => true],
         'createSpeech' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/speech', 'category' => 'audio', 'body' => 'json'],
         'createVoice' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/voices', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['audio_sample']],
+        'deleteVoice' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/audio/voices/{voice_id}', 'category' => 'audio', 'body' => 'none'],
         'listVoiceConsents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/audio/voice_consents', 'category' => 'audio', 'body' => 'none'],
         'createVoiceConsent' => ['method' => self::HTTP_METHOD_POST, 'path' => '/audio/voice_consents', 'category' => 'audio', 'body' => 'multipart', 'fileFields' => ['recording']],
         'retrieveVoiceConsent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/audio/voice_consents/{consent_id}', 'category' => 'audio', 'body' => 'none'],
@@ -154,6 +155,16 @@ class OpenAIURLBuilder
         'listVectorStoreFilesInBatch' => ['method' => self::HTTP_METHOD_GET, 'path' => '/vector_stores/{vector_store_id}/file_batches/{batch_id}/files', 'category' => 'vector_stores', 'body' => 'none'],
 
         // Agents (beta)
+        'createAgentAutomation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/automations', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentAutomations' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/automations', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentAutomation' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/automations/{automation_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'updateAgentAutomation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/automations/{automation_id}', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'deleteAgentAutomation' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/agents/automations/{automation_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'pauseAgentAutomation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/automations/{automation_id}/pause', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'resumeAgentAutomation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/automations/{automation_id}/resume', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'createAgentAutomationInvocation' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents/automations/{automation_id}/invocations', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'listAgentAutomationInvocations' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/automations/{automation_id}/invocations', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
+        'retrieveAgentAutomationInvocation' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/automations/{automation_id}/invocations/{invocation_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'createAgent' => ['method' => self::HTTP_METHOD_POST, 'path' => '/agents', 'category' => 'agents', 'body' => 'json', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'listAgents' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
         'retrieveAgent' => ['method' => self::HTTP_METHOD_GET, 'path' => '/agents/{agent_id}', 'category' => 'agents', 'body' => 'none', 'headers' => ['OpenAI-Beta' => 'agents=v1']],
@@ -242,6 +253,25 @@ class OpenAIURLBuilder
         'createAdminApiKey' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/admin_api_keys', 'category' => 'administration', 'body' => 'json', 'admin' => true],
         'retrieveAdminApiKey' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/admin_api_keys/{key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'deleteAdminApiKey' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/admin_api_keys/{key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+
+        // External Keys
+        'createExternalKey' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/external_keys', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'listExternalKeys' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/external_keys', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'retrieveExternalKey' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/external_keys/{external_key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'deleteExternalKey' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/external_keys/{external_key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'validateExternalKey' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/external_keys/{external_key_id}/validate', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+
+        // Workload Identity Providers
+        'createWorkloadIdentityProvider' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/workload_identity_providers', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'listWorkloadIdentityProviders' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/workload_identity_providers', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'retrieveWorkloadIdentityProvider' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'updateWorkloadIdentityProvider' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'deleteWorkloadIdentityProvider' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'createWorkloadIdentityFederationRule' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'listWorkloadIdentityFederationRules' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'retrieveWorkloadIdentityFederationRule' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'updateWorkloadIdentityFederationRule' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}', 'category' => 'administration', 'body' => 'json', 'admin' => true],
+        'deleteWorkloadIdentityFederationRule' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/workload_identity_providers/{workload_identity_provider_id}/federation_rules/{workload_identity_federation_rule_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
 
         // External Storage
         'createExternalStorage' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/external_storage', 'category' => 'administration', 'body' => 'json', 'admin' => true],
@@ -356,7 +386,12 @@ class OpenAIURLBuilder
         // Project API Keys
         'listProjectApiKeys' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/api_keys', 'category' => 'administration', 'body' => 'none', 'admin' => true],
         'retrieveProjectApiKey' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/api_keys/{api_key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'updateProjectApiKey' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/api_keys/{api_key_id}', 'category' => 'administration', 'body' => 'json', 'admin' => true],
         'deleteProjectApiKey' => ['method' => self::HTTP_METHOD_DELETE, 'path' => '/organization/projects/{project_id}/api_keys/{api_key_id}', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+
+        // Project Service Tier Settings
+        'retrieveProjectServiceTierSettings' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/service_tier_settings', 'category' => 'administration', 'body' => 'none', 'admin' => true],
+        'updateProjectServiceTierSettings' => ['method' => self::HTTP_METHOD_POST, 'path' => '/organization/projects/{project_id}/service_tier_settings', 'category' => 'administration', 'body' => 'json', 'admin' => true],
 
         // Rate Limits
         'listProjectRateLimits' => ['method' => self::HTTP_METHOD_GET, 'path' => '/organization/projects/{project_id}/rate_limits', 'category' => 'administration', 'body' => 'none', 'admin' => true],
